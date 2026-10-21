@@ -36,8 +36,8 @@ class PartyPick {
       if (k === this.i) cursor(2, y);
       if (this.o.mark === k) { ctx.fillStyle = PAL[1]; ctx.fillRect(9, y - 1, 150, 13); }
       drawText(monName(m), 10, y, m.hp ? 3 : 2);
-      drawText(m.st ? STS[m.st] : 'Lv' + m.lv, 64, y, m.st ? 2 : 3);
-      const bx = 94, bw = 40;
+      drawText(m.st ? STS[m.st] : gradeLabel(m), 58, y, m.st ? 2 : 3);
+      const bx = 112, bw = 26;
       ctx.fillStyle = PAL[3]; ctx.fillRect(bx, y + 3, bw + 2, 5);
       ctx.fillStyle = PAL[0]; ctx.fillRect(bx + 1, y + 4, bw, 3);
       ctx.fillStyle = PAL[m.hp / m.mhp < 0.25 ? 3 : 2]; ctx.fillRect(bx + 1, y + 4, Math.ceil(bw * m.hp / m.mhp), 3);
@@ -85,21 +85,22 @@ async function statPages(m) {
     ctx.drawImage(artCanvas(sp.art), 6, 6);
     drawText('No.' + String(sp.no).padStart(3, '0'), 54, 4);
     drawText(monName(m), 54, 17);
-    drawText('Lv' + m.lv, 118, 17);
+    drawText(gradeLabel(m), 104, 17);
     drawText('유형/' + sp.type, 54, 30);
     drawText(m.st ? STN[m.st] : (m.hp ? '정상' : '기절'), 118, 30, 2);
     ctx.fillStyle = PAL[3]; ctx.fillRect(4, 50, 152, 1);
     const rows = [['체력', `${m.hp}/${m.mhp}`], ['추진력', m.atk], ['내공', m.def], ['전문성', m.spc], ['처리속도', m.spd]];
     rows.forEach(([a, b], i) => { drawText(a, 8, 55 + i * 14); drawTextR(b, 88, 55 + i * 14); });
-    drawText('경험치', 96, 55); drawTextR(m.exp, 156, 69);
-    drawText('다음 Lv', 96, 87); drawTextR(m.lv >= 100 ? 0 : expAt(m.lv + 1) - m.exp, 156, 101);
+    drawText('경력', 96, 55); drawTextR(m.exp, 156, 69);
+    drawText('다음 호봉', 96, 87); drawTextR(m.lv >= MAX_HOBONG ? 0 : expAt(m.lv + 1) - m.exp, 156, 101);
+    if ((m.grade || 0) < 4) drawText(`${PROMO_AT[m.grade || 0]}호봉에 승진`, 96, 115, 2);
     if ((G.frame >> 4) % 2) downArrow(148, 134);
   });
   if (!r) return;
   await panel(() => {
     fillScr(0);
     ctx.drawImage(artCanvas(sp.art), 6, 6);
-    drawText(monName(m), 54, 10); drawText('Lv' + m.lv, 118, 10);
+    drawText(monName(m), 54, 10); drawText(gradeLabel(m), 104, 10);
     drawText('익힌 기술', 54, 26, 2);
     ctx.fillStyle = PAL[3]; ctx.fillRect(4, 50, 152, 1);
     m.moves.forEach((v, i) => {

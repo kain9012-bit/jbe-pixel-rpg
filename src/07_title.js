@@ -35,6 +35,7 @@ async function titleMenu() {
     const s = readSave();
     if (!s) { await say('기록을 읽지 못했다.'); return; }
     G.S = Object.assign(newState(), s);
+    for (const m of [...G.S.party, ...G.S.box]) migrateMon(m);
     await fadeOut(0, 4);
     G.scene = OW; OW.load(G.S.map, G.S.x, G.S.y, G.S.dir); OW.tick();
     await fadeIn(4);
@@ -85,7 +86,7 @@ async function newGame() {
   await says('안녕! 교행몬의 세계에 잘 왔다!', '나는 교행몬 박사. 학교 행정실장으로 오래 일하다가 은퇴했단다.');
   INTRO.show = 'm_chulseok';
   await says('이 세계에는 「교행몬」이라고 불리는 교육행정직들이 살고 있단다.',
-    '학교와 교육청 곳곳에서 일하며, 레벨이 오를 때마다 업무경감 기술을 하나씩 익히지.',
+    '학교와 교육청 곳곳에서 일하며, 호봉이 오를 때마다 업무경감 기술을 하나씩 익히고, 때가 되면 승진도 하지.',
     '사람들은 교행몬과 함께 실력을 겨루기도 하고, 서로 도우며 일하기도 한단다.',
     '나는 그런 교행몬을 연구하고 있지.');
   INTRO.show = 'player';

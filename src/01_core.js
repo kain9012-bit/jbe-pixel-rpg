@@ -297,6 +297,7 @@ const JINGLES = {
   level: 'E5:1 G5:1 C6:2',
   catch: 'C5:1 E5:1 G5:1 C6:2 G5:1 C6:4',
   badge: 'G4:1 C5:1 E5:1 G5:2 E5:1 G5:1 C6:2 B5:1 C6:4',
+  promo: 'C5:1 E5:1 G5:1 C6:2 G5:1 C6:2 R:1 D6:1 C6:1 B5:1 A5:1 G5:2 E5:1 G5:1 C6:2 E6:1 D6:1 C6:4',
 };
 function parseSeq(s) { return s.trim().split(/\s+/).map(t => { const [n, d] = t.split(':'); return [n, +d]; }); }
 for (const k in SONGS) SONGS[k].ch.forEach(c => { c[2] = parseSeq(c[2]); });

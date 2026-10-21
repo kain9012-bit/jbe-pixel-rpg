@@ -61,7 +61,7 @@ class Battle {
   drawHud(m, dh, x, y, mine) {
     drawText(monName(m), x + 2, y);
     if (m.st) drawText(STN[m.st], x + 2, y + 11, 2);
-    else drawText('Lv' + m.lv, x + (mine ? 34 : 34), y + 11);
+    else drawText(gradeLabel(m), x + 18, y + 11);
     const bx = x + 16, by = y + 25, bw = 62;
     drawText('HP', x + 2, y + 21);
     ctx.fillStyle = PAL[3]; ctx.fillRect(bx, by, bw + 2, 5);
@@ -241,7 +241,7 @@ class Battle {
       else {
         await say(`${J(nm, '은는')} 지침혼선에 빠져 있다!`);
         if (chance(0.5)) {
-          const d = Math.max(1, Math.floor(Math.floor((Math.floor(2 * me.lv / 5) + 2) * 40 * me.atk / me.def / 50) + 2));
+          const d = Math.max(1, Math.floor(Math.floor((Math.floor(2 * me.lv * EFF / 5) + 2) * 40 * me.atk / me.def / 50) + 2));
           await this.hurt(side, d, 'weak');
           await say('헷갈려서 엉뚱한 일을 해 버렸다!');
           return await this.checkFaint();
@@ -314,7 +314,7 @@ class Battle {
     let A = phys ? att.atk : att.spc, D = phys ? def.def : def.spc;
     if (!crit) { A *= stg(stA[phys ? 'atk' : 'spc']); D *= stg(stD[phys ? 'def' : 'spc']); }
     if (phys && att.st === 'stress') A /= 2;
-    const L = att.lv * (crit ? 2 : 1);
+    const L = att.lv * EFF * (crit ? 2 : 1);
     let d = Math.floor(Math.floor((Math.floor(2 * L / 5) + 2) * mv.p * A / Math.max(1, D)) / 50) + 2;
     if (mv.t && mv.t === SP[att.sp].type) d = Math.floor(d * 1.5);
     const e = eff(mv.t, SP[def.sp].type);
@@ -460,14 +460,14 @@ class Battle {
   async giveExp() {
     const alive = [...this.part].filter(i => G.S.party[i] && G.S.party[i].hp > 0);
     if (!alive.length) return;
-    const base = Math.floor(SP[this.E.sp].exp * this.E.lv / 7 * (this.wild ? 1 : 1.5));
+    const base = Math.floor(SP[this.E.sp].exp * this.E.lv / 5 * (this.wild ? 1 : 1.5));
     const each = Math.max(1, Math.floor(base / alive.length));
     for (const i of alive) {
       const m = G.S.party[i];
-      if (m.lv >= 100) continue;
+      if (m.lv >= MAX_HOBONG) continue;
       m.exp += each;
-      await say(`${J(monName(m), '은는')} 경험치를 ${each} 얻었다!`);
-      while (m.lv < 100 && m.exp >= expAt(m.lv + 1)) {
+      await say(`${J(monName(m), '은는')} 경력을 ${each} 쌓았다!`);
+      while (m.lv < MAX_HOBONG && m.exp >= expAt(m.lv + 1)) {
         await levelUp(m, this);
         if (m === this.M) this.dP = m.hp;
       }
@@ -482,7 +482,7 @@ class Battle {
     this.eX = 112;
     await say(`${J(this.tr.name, '과와')}의 업무 대결에서 이겼다!`);
     if (this.tr.defeat) await says(...[].concat(this.tr.defeat));
-    const money = (this.tr.money || 20) * this.eParty[this.eParty.length - 1].lv;
+    const money = (this.tr.money || 20) * this.eParty[this.eParty.length - 1].lv * EFF;
     G.S.money += money;
     await say(`${J(G.S.name, '은는')} 상금으로 ${money.toLocaleString()}원을 받았다!`);
     this.result = 'win';
@@ -557,7 +557,7 @@ async function levelUp(m, B) {
   calcStats(m);
   m.hp += m.mhp - old.mhp;
   const w = jingle('level');
-  await say(`${monName(m)}의 레벨이 ${m.lv}${(jong(String(m.lv)) === 0 || jong(String(m.lv)) === 8) ? '로' : '으로'} 올랐다!`);
+  await say(`${monName(m)}의 호봉이 올라 ${m.lv}호봉이 되었다!`);
   await panel(() => {
     box(64, 0, 96, 92);
     [['체력', 'mhp'], ['추진력', 'atk'], ['내공', 'def'], ['전문성', 'spc'], ['처리속도', 'spd']].forEach(([n, k], i) => {
@@ -628,51 +628,153 @@ async function battle(opt) {
   await fadeIn(3);
   return res;
 }
-// ───────── 승진 ─────────
+// ───────── 승진 (볼거리 장면) ─────────
+const PROMO_LINES = [
+  '새 명함이 나왔다! 직함이 한 줄 늘었다.',
+  '책상이 창가 쪽으로 옮겨졌다!',
+  '동료들이 떡을 돌리자고 한다!',
+  '축하 화분이 세 개나 도착했다!',
+  '단톡방에 축하 이모티콘이 쏟아졌다!',
+  '결재판이 조금 더 묵직해진 기분이다.',
+];
+function silCanvas(name) {
+  const key = name + '|sil';
+  if (IMG[key]) return IMG[key];
+  const src = artCanvas(name), c = mkCanvas(src.width, src.height), x = c.getContext('2d');
+  x.drawImage(src, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = PAL[3]; x.fillRect(0, 0, c.width, c.height);
+  IMG[key] = c; return c;
+}
+function rankOf(sp) {
+  const prev = Object.values(SP).find(q => q.evo && q.evo[1] === sp);
+  if (!prev) return '새내기';
+  return Object.values(SP).some(q => q.evo && q.evo[1] === prev.name) ? '실장급' : '주무관';
+}
 class EvoScene {
-  constructor(m, to) { this.m = m; this.from = SP[m.sp].art; this.to = SP[to].art; this.show = this.from; this.flash = 0; }
+  constructor(m, to, ng) {
+    this.m = m; this.fromSp = m.sp; this.toSp = to; this.ng = ng;
+    this.show = SP[m.sp].art; this.sil = false; this.dx = 0; this.dy = 0;
+    this.rays = false; this.rayT = 0; this.flash = 0; this.doc = null; this.banner = -40;
+    this.conf = []; this.spark = []; this.bubble = null; this.t = 0;
+  }
   update() {}
+  tick() {
+    this.t++;
+    if (this.rays) this.rayT += 1;
+    for (const p of this.conf) { p.y += p.vy; p.x += Math.sin((this.t + p.ph) / 8) * 0.6 + p.vx; p.vx *= 0.97; p.vy = Math.min(1.2, p.vy + 0.05); }
+    this.conf = this.conf.filter(p => p.y < 100);
+    for (const p of this.spark) { p.y -= 0.6; p.life--; }
+    this.spark = this.spark.filter(p => p.life > 0);
+    if (this.flash > 0) this.flash--;
+  }
+  burst(n = 40) { for (let i = 0; i < n; i++) this.conf.push({ x: 80 + rnd(-10, 10), y: 40 + rnd(-6, 6), vx: (Math.random() - 0.5) * 4, vy: -Math.random() * 2.5 - 0.5, c: rnd(1, 3), w: rnd(1, 2), h: rnd(2, 3), ph: rnd(0, 50) }); }
+  sparkle() { this.spark.push({ x: 60 + rnd(0, 40), y: 50 + rnd(0, 10), life: rnd(20, 40) }); }
+  drawRays() {
+    if (!this.img) { this.img = ctx.createImageData(160, 96); this.ang = new Float32Array(160 * 96); for (let y = 0; y < 96; y++) for (let x = 0; x < 160; x++) this.ang[y * 160 + x] = Math.atan2(y - 42, x - 80); }
+    const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    const c0 = hex(PAL[0]), c1 = hex(PAL[1]), d = this.img.data, off = this.rayT * 0.03;
+    for (let i = 0; i < 160 * 96; i++) { const k = Math.floor(((this.ang[i] + off) / (Math.PI * 2) + 2) * 14) % 2, c = k ? c1 : c0; d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = 255; }
+    ctx.putImageData(this.img, 0, 0);
+  }
   draw() {
     fillScr(0);
-    const img = artCanvas(this.show);
-    ctx.drawImage(img, 60, 22);
-    if (this.flash) { ctx.globalAlpha = 0.5; ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, W, 96); ctx.globalAlpha = 1; }
+    if (this.rays) this.drawRays();
+    const img = this.sil ? silCanvas(this.show) : artCanvas(this.show);
+    ctx.drawImage(img, 60 + this.dx, 22 + this.dy);
+    for (const p of this.spark) { ctx.fillStyle = PAL[p.life % 8 < 4 ? 3 : 2]; ctx.fillRect(p.x, p.y - 1, 1, 3); ctx.fillRect(p.x - 1, p.y, 3, 1); }
+    if (this.bubble) { box(this.bubble[0], this.bubble[1], textW(this.bubble[2]) + 12, 18); ctx.fillStyle = PAL[3]; ctx.fillRect(this.bubble[0] + 8, this.bubble[1] + 18, 3, 3); drawText(this.bubble[2], this.bubble[0] + 6, this.bubble[1] + 4); }
+    if (this.doc) {
+      const [x, y] = this.doc;
+      box(x, y, 128, 76);
+      drawText('발 령 장', x + 64 - textW('발 령 장') / 2, y + 6);
+      ctx.fillStyle = PAL[3]; ctx.fillRect(x + 8, y + 18, 112, 1);
+      drawText('성명  ' + this.fromSp, x + 8, y + 22, 3);
+      drawText(`직급  ${GRADES[this.ng - 1]} → ${GRADES[this.ng]}`, x + 8, y + 34, 3);
+      drawText('위 교행몬을 승진시킴', x + 8, y + 46, 2);
+      drawText('교행몬 인사위원회', x + 8, y + 59, 2);
+      ctx.fillStyle = PAL[2]; ctx.fillRect(x + 106, y + 56, 13, 13); ctx.fillStyle = PAL[0]; ctx.fillRect(x + 107, y + 57, 11, 11); drawText('인', x + 108, y + 58, 2);
+    }
+    for (const p of this.conf) { ctx.fillStyle = PAL[p.c]; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h); }
+    if (this.banner > -40) {
+      const y = this.banner;
+      ctx.fillStyle = PAL[3]; ctx.fillRect(30, y, 100, 24); ctx.fillStyle = PAL[2]; ctx.fillRect(24, y + 4, 6, 16); ctx.fillRect(130, y + 4, 6, 16);
+      ctx.fillStyle = PAL[0]; ctx.fillRect(31, y + 1, 98, 1); ctx.fillRect(31, y + 22, 98, 1);
+      const t = '축 승진!', tw = textW(t) * 2; drawText(t, 80 - tw / 2, y + 3, 0, ctx, 2);
+    }
+    if (this.flash > 0) { ctx.globalAlpha = this.flash / 10; ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, W, 96); ctx.globalAlpha = 1; }
     if (!G.ui.length) box(TB.x, TB.y, TB.w, TB.h);
   }
 }
 async function checkEvolutions() {
   for (const m of G.S.party) {
-    const e = SP[m.sp].evo;
-    if (!e || m.lv < e[0] || !SP[e[1]].art || m.hp <= 0) continue;
-    await evolve(m, e[1]);
+    if (m.hp <= 0) continue;
+    const g = m.grade || 0;
+    if (g >= 4 || m.lv < PROMO_AT[g]) continue;
+    const ng = g + 1;
+    let to = null;
+    if ((ng === 1 || ng === 3) && SP[m.sp].evo && SP[SP[m.sp].evo].art) to = SP[m.sp].evo;
+    await evolve(m, to, ng);
   }
 }
-async function evolve(m, to) {
+function drumroll(n) { if (!AU.ctx || !AU.on) return; const t = AU.ctx.currentTime; for (let i = 0; i < n; i++) noise(t + i * 0.035, 0.03, 0.05 + i / n * 0.05); }
+function claps() { if (!AU.ctx || !AU.on) return; const t = AU.ctx.currentTime; for (let i = 0; i < 18; i++) noise(t + i * 0.09 + Math.random() * 0.05, 0.04, 0.09); }
+function ring() { if (!AU.ctx || !AU.on) return; const t = AU.ctx.currentTime; for (let i = 0; i < 8; i++) tone(i % 2 ? 1320 : 1660, t + i * 0.06, 0.05, 'square', 0.04); }
+async function evolve(m, to, ng) {
   const prev = G.scene, old = m.sp;
-  const S = new EvoScene(m, to);
+  const S = new EvoScene(m, to || m.sp, ng);
   playMusic(null);
   await fadeOut(0, 3); G.scene = S; await fadeIn(3);
+  // 1. 낌새
+  for (let i = 0; i < 24; i++) { S.dx = i % 6 < 3 ? -1 : 1; await sleepF(2); }
+  S.dx = 0;
   await say(`어? ${monName(m)}의 상태가…!`);
+  // 2. 인사팀 전화
+  S.bubble = [96, 4, '따르릉!']; ring(); await sleepF(30); ring();
+  await say('인사팀에서 전화가 걸려 왔다!', { auto: 70 });
+  S.bubble = null;
+  // 3. 두근두근 (B를 누르고 있으면 미룸)
   let cancel = false;
-  for (let i = 0, gap = 24; i < 14; i++, gap = Math.max(3, gap - 2)) {
-    S.show = i % 2 ? S.to : S.from; sfx('tick');
-    for (let k = 0; k < gap; k++) { await sleepF(1); if (BTN.b) cancel = true; }
+  const fromArt = SP[old].art, toArt = SP[to || old].art;
+  S.sil = !!to;
+  for (let i = 0, gap = 26; i < 22; i++, gap = Math.max(3, Math.round(gap * 0.86))) {
+    S.show = (to && i % 2) ? toArt : fromArt; if (!to) S.dx = i % 2 ? 1 : -1; sfx('tick'); drumroll(Math.round(gap / 2));
+    S.sparkle(); S.sparkle();
+    for (let k = 0; k < gap; k++) { S.dy = (k % 4 < 2) ? -1 : 0; await sleepF(1); if (BTN.b) cancel = true; }
     if (cancel) break;
   }
+  S.dy = 0; S.dx = 0;
   if (cancel) {
-    S.show = S.from;
-    await say(`어라? ${J(monName(m), '은는')} 승진을 미뤘다.`);
-  } else {
-    S.show = S.to; S.flash = 1; await sleepF(6); S.flash = 0;
-    const w = jingle('badge');
-    const oldMhp = m.mhp;
-    m.sp = to; calcStats(m); m.hp = Math.max(1, m.hp + m.mhp - oldMhp);
-    G.S.seen[to] = 1; G.S.caught[to] = 1;
-    await say(`축하합니다! ${J(old, '은는')} ${to}${(jong(to) === 0 || jong(to) === 8) ? '로' : '으로'} 승진했다!`);
-    if (w) await sleepF(10);
-    for (const [l, mv] of SP[to].learn) if (l === m.lv && !m.moves.some(x => x.id === mv)) await learnMove(m, mv);
+    S.sil = false; S.show = fromArt;
+    await say(`${monName(m)}: 아… 이번엔 사양할게요!`);
+    await say(`${J(monName(m), '은는')} 승진을 미뤘다. 다음에 또 기회가 온다!`);
+    await fadeOut(0, 3); G.scene = prev; return;
   }
-  await fadeOut(0, 3); G.scene = prev;
+  // 4. 발령장 등장
+  sfx('throw');
+  for (let y = -80; y <= 10; y += 6) { S.doc = [16, y]; await sleepF(1); }
+  S.doc = [16, 10]; sfx('thud');
+  await say('발령장이 날아왔다!', { auto: 80 });
+  // 5. 짠!
+  S.sil = false; S.show = toArt;
+  for (let i = 0; i < 3; i++) { S.flash = 10; sfx('ding'); await sleepF(10); }
+  for (let y = 10; y > -90; y -= 8) { S.doc = [16, y]; await sleepF(1); }
+  S.doc = null; S.rays = true;
+  S.burst(50); claps();
+  const w = jingle('promo');
+  for (let i = 0; i < 16; i++) { S.banner = -40 + Math.round(44 * Math.min(1, i / 12)); S.dy = -Math.round(Math.abs(Math.sin(i / 3)) * 6); await sleepF(2); }
+  S.banner = 4; S.dy = 0;
+  const oldMhp = m.mhp, oldLv = m.lv;
+  // 승진: 직급 오르고 1호봉 내려감 (경력 진행분은 유지)
+  const prog = m.exp - expAt(m.lv);
+  m.grade = ng; m.lv = Math.max(1, m.lv - 1); m.exp = expAt(m.lv) + Math.max(0, Math.min(prog, expAt(m.lv + 1) - expAt(m.lv) - 1));
+  if (to) { m.sp = to; G.S.seen[to] = 1; G.S.caught[to] = 1; }
+  calcStats(m); m.hp = Math.max(1, Math.min(m.mhp, m.hp + m.mhp - oldMhp));
+  await say(`축하합니다! ${J(old, '은는')} ${GRADES[ng]}${(jong(GRADES[ng]) === 0 || jong(GRADES[ng]) === 8) ? '로' : '으로'} 승진했다!`);
+  if (to) await say(`모습도 바뀌어 ${J(to, '이가')} 되었다!`);
+  await say(`승진하면서 호봉이 재조정되어 ${oldLv}호봉에서 ${m.lv}호봉이 되었다.`);
+  S.burst(30); claps();
+  await say(PROMO_LINES[rnd(0, PROMO_LINES.length - 1)]);
+  if (w) await sleepF(5);
+  await fadeOut(0, 4); G.scene = prev;
 }
 
 async function wildBattle(sp, lv) { await battle({ wild: [sp, lv] }); }

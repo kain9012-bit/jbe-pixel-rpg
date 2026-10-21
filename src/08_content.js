@@ -176,7 +176,7 @@ async function envTalk(sp) {
   removeUI(pnl);
   if (!ok) return;
   await say(`박사: 이 교행몬은 정말 성실하단다!`);
-  const m = makeMon(sp, 5);
+  const m = makeMon(sp, 2);
   G.S.party.push(m); G.S.caught[sp] = 1;
   F().gotStarter = 1; F().starter = sp; F()['env_' + sp] = 1;
   OW.refreshNpcs();
@@ -220,7 +220,7 @@ async function rivalBattle1() {
     P.dir = OPP[rv.dir];
   }
   await say(`${G.S.rival}: 할아버지한테 받은 교행몬, 실력 좀 겨뤄 보자!`);
-  const r = await battle({ trainer: rivalTrainer([[F().rivalSp, 5]], { defeat: `${G.S.rival}: 쳇! 내가 고른 게 더 센 줄 알았는데!` }), noWhiteout: true });
+  const r = await battle({ trainer: rivalTrainer([[F().rivalSp, 2]], { defeat: `${G.S.rival}: 쳇! 내가 고른 게 더 센 줄 알았는데!` }), noWhiteout: true });
   if (r !== 'win') await say(`${G.S.rival}: 봤지? 역시 내가 고른 게 최고야!`);
   await says(`${G.S.rival}: 좋아, 밖에 나가서 더 키워 올 거야.`, `${G.S.rival}: 할아버지, 나 먼저 간다! ${G.S.name}, 다음에 또 붙자!`);
   F().rival1 = 1;
@@ -315,7 +315,7 @@ defMap('route1', {
   ],
   edges: { n: ['jeonju', 2], s: ['town', 0] },
   signs: { '14,5': '1번 도로\n완산 마을 ↔ 전주', '4,19': '풀숲에서는 미발령 교행몬이 나와요!\n― 완산 마을 청년회 ―' },
-  wild: [['출석이', 2, 4, 55], ['포스티', 3, 4, 45]],
+  wild: [['출석이', 2, 3, 55], ['포스티', 2, 3, 45]],
   npcs: [
     { x: 13, y: 18, ch: 'man', talk: async () => {
       if (F().sample) { await say('전주 교직원 매점에도 꼭 들러 주세요!'); return; }
@@ -428,15 +428,15 @@ defMap('forest', {
   ],
   edges: { s: ['jeonju', 2], n: ['wanju', 2] },
   signs: { '12,20': '서류숲\n길을 잃지 않게 조심하세요!' },
-  wild: [['포스티', 4, 6, 35], ['영수증이', 4, 6, 35], ['출석이', 4, 7, 30]],
+  wild: [['포스티', 2, 3, 35], ['영수증이', 2, 3, 35], ['출석이', 3, 3, 30]],
   npcs: [
-    { x: 5, y: 17, ch: 'man', dir: 'right', trainer: { id: 'f1', name: '신규 트레이너 민준', ch: 'man', team: [['출석이', 5], ['출석이', 5]], money: 15, sight: 4,
+    { x: 5, y: 17, ch: 'man', dir: 'right', trainer: { id: 'f1', name: '신규 트레이너 민준', ch: 'man', team: [['출석이', 3], ['출석이', 3]], money: 15, sight: 4,
       before: '발령 받은 지 일주일! 내 교행몬 실력 좀 봐!', defeat: '아직 일주일밖에 안 됐다고…' }, talk: '출석이는 아침마다 종을 울려. 덕분에 지각은 안 해.' },
-    { x: 7, y: 13, ch: 'woman', dir: 'right', trainer: { id: 'f2', name: '신규 트레이너 서연', ch: 'woman', team: [['포스티', 6]], money: 15, sight: 4,
+    { x: 7, y: 13, ch: 'woman', dir: 'right', trainer: { id: 'f2', name: '신규 트레이너 서연', ch: 'woman', team: [['포스티', 3]], money: 15, sight: 4,
       before: '숲에서 메모지 날리는 거 봤어? 그거 내 포스티야!', defeat: '메모지가 다 날아가 버렸어…' }, talk: '포스티는 메모를 너무 많이 붙여서 가끔 앞이 안 보인대.' },
-    { x: 12, y: 9, ch: 'man2', dir: 'left', trainer: { id: 'f3', name: '신규 트레이너 도현', ch: 'man2', team: [['영수증이', 6], ['출석이', 6]], money: 15, sight: 4,
+    { x: 12, y: 9, ch: 'man2', dir: 'left', trainer: { id: 'f3', name: '신규 트레이너 도현', ch: 'man2', team: [['영수증이', 3], ['출석이', 3]], money: 15, sight: 4,
       before: '증빙 없는 승부는 안 받아! …아, 너는 있구나. 덤벼!', defeat: '영수증은 잘 챙겨 둘게…' }, talk: '영수증이는 회계형이야. 기획형 교행몬한테 특히 강하지.' },
-    { x: 6, y: 5, ch: 'aide', dir: 'right', trainer: { id: 'f4', name: '주무관 트레이너 하은', ch: 'aide', team: [['포스티', 7], ['영수증이', 8]], money: 20, sight: 4,
+    { x: 6, y: 5, ch: 'aide', dir: 'right', trainer: { id: 'f4', name: '주무관 트레이너 하은', ch: 'aide', team: [['포스티', 3], ['영수증이', 4]], money: 20, sight: 4,
       before: '이 숲을 빠져나가면 완주야. 관장님께 도전하기 전에 나부터 넘어 봐!', defeat: '완주 관장님은 나보다 훨씬 세. 준비 잘 해!' }, talk: '한결 관장님은 기획형을 써. 회계형이나 민원형이 잘 먹힐 거야.' },
     { x: 17, y: 13, ch: 'envelope', item: { id: '발령장', n: 1, flag: 'it_f1' }, show: () => !F().it_f1 },
     { x: 2, y: 1, ch: 'envelope', item: { id: '믹스커피', n: 1, flag: 'it_f2' }, show: () => !F().it_f2 },
@@ -504,12 +504,12 @@ defMap('wgym', {
   signs: Object.fromEntries(['1,2', '8,2', '1,9', '8,9'].map(k => [k, () => say(`완주교육지원청 관장 한결\n도전에 성공한 트레이너: ${G.S.badges[0] ? G.S.name : '아직 없음'}`)])),
   npcs: [
     { id: 'leader', x: 4, y: 1, ch: 'leader', trainer: {
-      id: 'g1', name: '관장 한결', ch: 'leader', team: [['포스티', 9], ['칸반이', 12]], money: 99, sight: 0,
+      id: 'g1', name: '관장 한결', ch: 'leader', team: [['포스티', 3], ['칸반이', 6]], money: 99, sight: 0,
       before: ['나는 완주교육지원청 관장 한결.', '모든 일은 계획에서 시작되지. 계획 없는 열정은 야근으로 끝나거든.', '네 계획을 보여 줘!'],
       defeat: '…좋은 계획이었어. 인정할게.',
       onWin: gymWin,
     }, talk: async () => { await says('배지는 너의 계획이 통했다는 증거야.', '다음 관문은 진안교육지원청이야. 계획대로만 가면 문제없을 거야.'); } },
-    { x: 1, y: 5, ch: 'aide', dir: 'right', trainer: { id: 'g1t', name: '주무관 트레이너 지훈', ch: 'aide', team: [['포스티', 9], ['포스티', 9]], money: 20, sight: 4,
+    { x: 1, y: 5, ch: 'aide', dir: 'right', trainer: { id: 'g1t', name: '주무관 트레이너 지훈', ch: 'aide', team: [['포스티', 3], ['포스티', 4]], money: 20, sight: 4,
       before: '관장님께 가려면 나를 넘어야지! 계획은 세워 왔어?', defeat: '내 계획에 빈틈이 있었네…' }, talk: '기획형은 회계형에 약해. 관장님 칸반이도 마찬가지야.' },
     { x: 7, y: 10, ch: 'man2', dir: 'left', talk: async () => {
       if (G.S.badges[0]) { await say('오! 새싹 배지! 미래의 교행몬 마스터 납시었네!'); return; }

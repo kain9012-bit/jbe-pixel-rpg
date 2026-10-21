@@ -150,31 +150,40 @@ const DEX = [
 ];
 DEX.forEach(([n, t, d], i) => { SP[n] = { no: i + 1, name: n, type: t, desc: d }; });
 function defSp(n, o) { Object.assign(SP[n], o); }
+// 배울 때의 호봉
 const LEARN = {
-  끄적이: [[1, '보고서 제출'], [1, '경청'], [6, '메모하기'], [9, '우선순위 정하기'], [12, '개조식 정리'], [16, '일정 역산'], [20, '로드맵'], [28, '비전 선포']],
-  동전이: [[1, '보고서 제출'], [1, '경청'], [6, '셈하기'], [9, '예산 동결'], [12, '엑셀 합계'], [16, '자동 대사'], [20, '피벗 테이블'], [30, '원클릭 결산']],
-  뚝딱이: [[1, '보고서 제출'], [1, '경청'], [6, '즉시 수리'], [9, '안전 점검'], [12, '체크리스트 점검'], [16, '사진 일괄 정리'], [22, '드론 촬영'], [32, '전면 리모델링']],
-  출석이: [[1, '보고서 제출'], [1, '경청'], [5, '출근 도장'], [9, '칼퇴 선언'], [13, '복무 자동집계'], [18, '메일머지'], [24, '일괄 발령']],
-  포스티: [[1, '보고서 제출'], [3, '메모하기'], [6, '일정 역산'], [12, '개조식 정리'], [16, '우선순위 정하기'], [20, '로드맵']],
-  영수증이: [[1, '보고서 제출'], [4, '셈하기'], [7, '예산 동결'], [13, '엑셀 합계'], [17, '자동 대사'], [22, '피벗 테이블']],
+  끄적이: [[1, '보고서 제출'], [1, '경청'], [3, '메모하기'], [4, '우선순위 정하기'], [6, '개조식 정리'], [8, '일정 역산'], [11, '로드맵'], [15, '비전 선포']],
+  동전이: [[1, '보고서 제출'], [1, '경청'], [3, '셈하기'], [4, '예산 동결'], [6, '엑셀 합계'], [8, '자동 대사'], [11, '피벗 테이블'], [15, '원클릭 결산']],
+  뚝딱이: [[1, '보고서 제출'], [1, '경청'], [3, '즉시 수리'], [4, '안전 점검'], [6, '체크리스트 점검'], [8, '사진 일괄 정리'], [11, '드론 촬영'], [15, '전면 리모델링']],
+  출석이: [[1, '보고서 제출'], [1, '경청'], [2, '출근 도장'], [4, '칼퇴 선언'], [6, '복무 자동집계'], [9, '메일머지'], [12, '일괄 발령']],
+  포스티: [[1, '보고서 제출'], [2, '메모하기'], [3, '일정 역산'], [6, '개조식 정리'], [8, '우선순위 정하기'], [11, '로드맵']],
+  영수증이: [[1, '보고서 제출'], [2, '셈하기'], [3, '예산 동결'], [6, '엑셀 합계'], [8, '자동 대사'], [11, '피벗 테이블']],
 };
-// 승진: 1차 Lv10, 2차 Lv15
-defSp('끄적이', { art: 'm_kkeut', base: [45, 45, 46, 62, 50], exp: 64, rate: 45, learn: LEARN.끄적이, evo: [10, '기안이'] });
-defSp('기안이', { art: 'm_gian', base: [60, 58, 60, 80, 65], exp: 141, rate: 45, learn: LEARN.끄적이, evo: [15, '청사진'] });
+// evo: 모습이 바뀌는 다음 단계 (8급 승진 때 1차, 6급 승진 때 2차)
+defSp('끄적이', { art: 'm_kkeut', base: [45, 45, 46, 62, 50], exp: 64, rate: 45, learn: LEARN.끄적이, evo: '기안이' });
+defSp('기안이', { art: 'm_gian', base: [60, 58, 60, 80, 65], exp: 141, rate: 45, learn: LEARN.끄적이, evo: '청사진' });
 defSp('청사진', { art: 'm_cheongsajin', base: [80, 75, 80, 105, 82], exp: 208, rate: 45, learn: LEARN.끄적이 });
-defSp('동전이', { art: 'm_dongjeon', base: [46, 52, 52, 46, 48], exp: 64, rate: 45, learn: LEARN.동전이, evo: [10, '장부리'] });
-defSp('장부리', { art: 'm_jangburi', base: [62, 68, 68, 60, 60], exp: 141, rate: 45, learn: LEARN.동전이, evo: [15, '결산대감'] });
+defSp('동전이', { art: 'm_dongjeon', base: [46, 52, 52, 46, 48], exp: 64, rate: 45, learn: LEARN.동전이, evo: '장부리' });
+defSp('장부리', { art: 'm_jangburi', base: [62, 68, 68, 60, 60], exp: 141, rate: 45, learn: LEARN.동전이, evo: '결산대감' });
 defSp('결산대감', { art: 'm_gyeolsan', base: [82, 90, 90, 80, 75], exp: 208, rate: 45, learn: LEARN.동전이 });
-defSp('뚝딱이', { art: 'm_ttukttak', base: [48, 56, 50, 40, 50], exp: 64, rate: 45, learn: LEARN.뚝딱이, evo: [10, '보수꾼'] });
-defSp('보수꾼', { art: 'm_bosu', base: [64, 74, 66, 52, 62], exp: 141, rate: 45, learn: LEARN.뚝딱이, evo: [15, '준공대장'] });
+defSp('뚝딱이', { art: 'm_ttukttak', base: [48, 56, 50, 40, 50], exp: 64, rate: 45, learn: LEARN.뚝딱이, evo: '보수꾼' });
+defSp('보수꾼', { art: 'm_bosu', base: [64, 74, 66, 52, 62], exp: 141, rate: 45, learn: LEARN.뚝딱이, evo: '준공대장' });
 defSp('준공대장', { art: 'm_jungong', base: [84, 100, 86, 68, 80], exp: 208, rate: 45, learn: LEARN.뚝딱이 });
-defSp('출석이', { art: 'm_chulseok', base: [32, 52, 35, 28, 70], exp: 50, rate: 255, learn: LEARN.출석이, evo: [10, '복무관'] });
-defSp('복무관', { art: 'm_bokmu', base: [52, 72, 52, 44, 90], exp: 116, rate: 127, learn: LEARN.출석이, evo: [15, '인사통'] });
+defSp('출석이', { art: 'm_chulseok', base: [32, 52, 35, 28, 70], exp: 50, rate: 255, learn: LEARN.출석이, evo: '복무관' });
+defSp('복무관', { art: 'm_bokmu', base: [52, 72, 52, 44, 90], exp: 116, rate: 127, learn: LEARN.출석이, evo: '인사통' });
 defSp('인사통', { art: 'm_insa', base: [72, 92, 72, 60, 105], exp: 190, rate: 45, learn: LEARN.출석이 });
-defSp('포스티', { art: 'm_posti', base: [40, 35, 40, 50, 45], exp: 55, rate: 200, learn: LEARN.포스티, evo: [10, '칸반이'] });
+defSp('포스티', { art: 'm_posti', base: [40, 35, 40, 50, 45], exp: 55, rate: 200, learn: LEARN.포스티, evo: '칸반이' });
 defSp('칸반이', { art: 'm_kanban', base: [62, 50, 62, 72, 58], exp: 140, rate: 90, learn: LEARN.포스티 });
-defSp('영수증이', { art: 'm_receipt', base: [42, 46, 40, 35, 56], exp: 56, rate: 190, learn: LEARN.영수증이, evo: [10, '증빙대장'] });
+defSp('영수증이', { art: 'm_receipt', base: [42, 46, 40, 35, 56], exp: 56, rate: 190, learn: LEARN.영수증이, evo: '증빙대장' });
 defSp('증빙대장', { art: 'm_jeungbing', base: [62, 68, 62, 52, 76], exp: 138, rate: 90, learn: LEARN.영수증이 });
+
+// ───────── 직급·호봉 ─────────
+const GRADES = ['9급', '8급', '7급', '6급', '사무관'];
+const PROMO_AT = [4, 7, 12, 20];      // 이 호봉이 되면 다음 직급으로 승진(승진 때 1호봉 내려감)
+const MAX_HOBONG = 40;
+const EFF = 3;                         // 계산용 배율: 1호봉 = 옛 레벨 3
+function gradeFor(lv) { let g = 0; while (g < 4 && lv >= PROMO_AT[g]) g++; return g; }
+function gradeLabel(m) { return `${GRADES[m.grade || 0]} ${m.lv}호봉`; }
 
 // ───────── 물건 ─────────
 const ITEMS = {
@@ -193,9 +202,10 @@ const STN = { burn: '번아웃', wait: '결재대기', sleep: '졸음', freeze: 
 const STS = { burn: '번', wait: '결', sleep: '졸', freeze: '먹', stress: '스' };
 
 // ───────── 교행몬 만들기 ─────────
-function expAt(lv) { return lv * lv * lv; }
+// 다음 호봉까지 필요한 경력 = 10 × 호봉²
+function expAt(lv) { return Math.round(10 * (lv - 1) * lv * (2 * lv - 1) / 6); }
 function calcStats(m) {
-  const b = SP[m.sp].base, iv = m.iv, L = m.lv;
+  const b = SP[m.sp].base, iv = m.iv, L = Math.min(100, m.lv * EFF);
   m.mhp = Math.floor((b[0] + iv[0]) * 2 * L / 100) + L + 10;
   m.atk = Math.floor((b[1] + iv[1]) * 2 * L / 100) + 5;
   m.def = Math.floor((b[2] + iv[2]) * 2 * L / 100) + 5;
@@ -203,10 +213,19 @@ function calcStats(m) {
   m.spd = Math.floor((b[4] + iv[4]) * 2 * L / 100) + 5;
 }
 function makeMon(sp, lv, fixedIv) {
+  const grade = gradeFor(lv);
+  // 직급에 맞는 모습으로 (8급부터 1차, 6급부터 2차)
+  if (grade >= 1 && SP[sp].evo && !isEvolved(sp)) sp = SP[sp].evo;
+  if (grade >= 3 && SP[sp].evo && SP[SP[sp].evo].art) sp = SP[sp].evo;
   const iv = fixedIv != null ? [fixedIv, fixedIv, fixedIv, fixedIv, fixedIv] : [0, 0, 0, 0, 0].map(() => rnd(0, 15));
-  const m = { sp, lv, exp: expAt(lv), iv, st: null, moves: [] };
+  const m = { sp, lv, grade, exp: expAt(lv), iv, st: null, moves: [] };
   calcStats(m); m.hp = m.mhp;
   const learned = SP[sp].learn.filter(([l]) => l <= lv).map(x => x[1]);
   for (const mv of learned.slice(-4)) m.moves.push({ id: mv, pp: MV[mv].pp });
   return m;
+}
+
+function isEvolved(sp) { return Object.values(SP).some(q => q.evo === sp); }
+function migrateMon(m) {
+  if (m.grade == null) { m.lv = Math.max(2, Math.min(MAX_HOBONG, Math.round(m.lv / EFF))); m.grade = gradeFor(m.lv); m.exp = expAt(m.lv); calcStats(m); m.hp = Math.min(m.hp, m.mhp); }
 }
