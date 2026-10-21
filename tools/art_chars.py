@@ -323,75 +323,152 @@ HEAD = {
  },
 }
 
-# 인물별 (머리, 상의색, 하의색, 넥타이)
+# 새 머리 모양 (참고 그림 반영)
+HEAD['hero'] = {
+ 'down': [
+  "....33333333....",
+  "...3222222223...",
+  "..322222222223..",
+  "..322200022223..",
+  "...3200000023...",
+  "...3030000303...",
+  "...3030000303...",
+  "...3000000003...",
+  "....33333333....",
+ ],
+ 'up': [
+  "....33333333....",
+  "...3222222223...",
+  "..322222222223..",
+  "..322222222223..",
+  "...3222222223...",
+  "...3222222223...",
+  "...3222222223...",
+  "...3200000023...",
+  "....33333333....",
+ ],
+ 'side': [
+  ".....3333333....",
+  "....322222223...",
+  "...32222222223..",
+  "...32000222223..",
+  "....300002223...",
+  "....303002223...",
+  "....303002223...",
+  "....300000223...",
+  ".....3333333....",
+ ],
+}
+HEAD['hardhat'] = {
+ 'down': [
+  ".....333333.....",
+  "...3300000033...",
+  "..300000000003..",
+  ".33333333333333.",
+  "...3000000003...",
+  "...3030000303...",
+  "...3030000303...",
+  "...3000000003...",
+  "....33333333....",
+ ],
+ 'up': [
+  ".....333333.....",
+  "...3300000033...",
+  "..300000000003..",
+  ".33333333333333.",
+  "...3222222223...",
+  "...3222222223...",
+  "...3222222223...",
+  "...3222222223...",
+  "....33333333....",
+ ],
+ 'side': [
+  ".....333333.....",
+  "....300000033...",
+  "...30000000003..",
+  ".3333333333333..",
+  "....300002223...",
+  "....303002223...",
+  "....303002223...",
+  "....300000223...",
+  ".....3333333....",
+ ],
+}
+def _recolor(h, a, b):
+    return {k: [r.replace(a, b) for r in v] for k, v in h.items()}
+HEAD['woman2'] = _recolor(HEAD['woman'], '1', '2')           # 짙은 갈색 단발
+HEAD['oldg'] = {k: [r for r in v] for k, v in HEAD['old'].items()}   # 안경 쓴 어르신
+HEAD['oldg']['down'][5] = "...3333003333..."
+HEAD['oldg']['side'][5] = "...3333001113..."
+
+# 인물별 (머리, 상의색, 하의색, 넥타이, 꾸밈)
 CHARS = {
- 'player': ('player', '3', '2', False),
- 'rival':  ('rival',  '1', '3', False),
- 'prof':   ('prof',   '0', '2', False),
- 'mom':    ('mom',    '1', '1', False),
- 'woman':  ('woman',  '0', '2', False),
- 'man':    ('man',    '1', '2', False),
- 'man2':   ('man',    '2', '3', False),
- 'old':    ('old',    '1', '2', False),
- 'leader': ('leader', '0', '3', True),
- 'staff':  ('woman',  '0', '1', False),
- 'aide':   ('man',    '0', '2', False),
+ 'player': ('hero',    '2', '1', False, ('card', 'tablet')),     # 남색 셔츠·신분증·태블릿
+ 'rival':  ('rival',   '1', '3', False, ('card', 'crossed')),    # 붉은 셔츠·팔짱
+ 'prof':   ('prof',    '2', '2', True,  ('folder',)),            # 회색 양복·서류철
+ 'mom':    ('mom',     '1', '3', False, ()),                     # 베이지 카디건·검은 치마
+ 'woman':  ('woman2',  '3', '3', False, ('card', 'collar')),     # 검은 정장
+ 'man':    ('man',     '0', '2', False, ('card',)),              # 하늘색 셔츠·청바지
+ 'man2':   ('hardhat', '2', '2', False, ('belt',)),              # 안전모·작업복
+ 'old':    ('oldg',    '1', '2', False, ()),                     # 안경·카키 셔츠
+ 'leader': ('leader',  '2', '3', True,  ('collar',)),            # 짙은 양복·넥타이
+ 'staff':  ('woman2',  '3', '3', False, ('collar',)),            # 조끼 차림 안내원
+ 'aide':   ('woman2',  '2', '1', False, ('pony', 'hood')),       # 후드티·포니테일
 }
 
 def _set(rows, r, c, v):
-    row = list(rows[r]); row[c] = v; rows[r] = ''.join(row)
+    if 0 <= r < len(rows) and 0 <= c < len(rows[r]):
+        row = list(rows[r]); row[c] = v; rows[r] = ''.join(row)
 
-def compose_player():
-    out = compose_base('player')
-    for k, rows in out.items():
-        rows = list(rows)
-        d = k[:-1]
-        if d == 'down':
-            # 모자 배지(흰색), 넓은 챙
-            rows[1] = '...3000000003...'; rows[2] = '...3000220003...'
-            rows[3] = '.33333333333333.'
-            # 검은 점퍼 + 흰 깃 + 교직원 신분증
-            _set(rows, 9, 7, '0'); _set(rows, 9, 8, '0')
-            _set(rows, 10, 7, '0'); _set(rows, 10, 8, '0')
-            _set(rows, 11, 7, '1'); _set(rows, 11, 8, '1')
-            _set(rows, 10, 3, '2'); _set(rows, 10, 12, '2')
-        elif d == 'up':
-            for r in (1, 2, 3): rows[r] = '...3000000003...'
-            # 등에 멘 가방
-            for c in range(5, 11): _set(rows, 9, c, '3')
-            for r in (10, 11): 
-                _set(rows, r, 5, '3'); _set(rows, r, 10, '3')
-                for c in range(6, 10): _set(rows, r, c, '1')
-            for c in range(5, 11): _set(rows, 12, c, '3')
-            _set(rows, 11, 7, '0'); _set(rows, 11, 8, '0')
-        else:
-            rows[1] = '....300000003...'; rows[2] = '....300002003...'
-            rows[3] = '.33333333333....'
-            _set(rows, 9, 6, '0')
-            for r in (9, 10, 11):
-                _set(rows, r, 11, '1'); _set(rows, r, 12, '1'); _set(rows, r, 13, '3')
-            for c in (11, 12, 13): _set(rows, 12, c, '3')
-            _set(rows, 8, 11, '3'); _set(rows, 8, 12, '3')
-        out[k] = rows
-    return out
+def decorate(rows, d, extras):
+    rows = list(rows)
+    for e in extras:
+        if e == 'card' and d == 'down':          # 목걸이 신분증
+            _set(rows, 9, 6, '0'); _set(rows, 9, 9, '0')
+            _set(rows, 10, 7, '0'); _set(rows, 10, 8, '0'); _set(rows, 11, 7, '0'); _set(rows, 11, 8, '0')
+        if e == 'collar' and d == 'down':        # 흰 셔츠 깃
+            _set(rows, 9, 6, '0'); _set(rows, 9, 7, '0'); _set(rows, 9, 8, '0'); _set(rows, 9, 9, '0')
+        if e == 'crossed' and d == 'down':       # 팔짱
+            rows[10] = rows[10][:2] + '3' + rows[10][3] + '33333333' + rows[10][12] + '3' + rows[10][14:]
+            _set(rows, 11, 3, '3'); _set(rows, 11, 12, '3')
+        if e == 'tablet' and d == 'side':        # 옆구리에 낀 태블릿
+            for r in (10, 11, 12):
+                _set(rows, r, 10, '3'); _set(rows, r, 11, '1'); _set(rows, r, 12, '3')
+            _set(rows, 9, 11, '3'); _set(rows, 13, 11, '3')
+        if e == 'folder' and d in ('down', 'side'):   # 서류철
+            c = 12 if d == 'down' else 10
+            for r in (10, 11, 12):
+                _set(rows, r, c, '3'); _set(rows, r, c + 1, '1'); _set(rows, r, c + 2, '3')
+            _set(rows, 9, c + 1, '3'); _set(rows, 13, c + 1, '3')
+        if e == 'belt' and d in ('down', 'side'):     # 공구 벨트
+            row = rows[12]
+            rows[12] = ''.join('3' if ch in '012' and i % 2 == 0 else ('1' if ch in '02' else ch) for i, ch in enumerate(row))
+        if e == 'hood':                          # 후드 모자
+            if d == 'down':
+                _set(rows, 9, 5, '3'); _set(rows, 9, 10, '3'); _set(rows, 10, 7, '1'); _set(rows, 10, 8, '1')
+            if d == 'up':
+                for c in range(5, 11): _set(rows, 9, c, '1')
+                _set(rows, 9, 4, '3'); _set(rows, 9, 11, '3')
+        if e == 'pony':                          # 포니테일
+            if d == 'side':
+                for r in (3, 4, 5, 6): _set(rows, r, 13, '2'); _set(rows, r, 14, '3')
+                _set(rows, 2, 13, '3'); _set(rows, 7, 13, '3')
+            if d == 'up':
+                for r in (7, 8): _set(rows, r, 7, '3'); _set(rows, r, 8, '3')
+    return rows
 
 def compose(cname):
-    if cname == 'player':
-        return compose_player()
-    return compose_base(cname)
-
-def compose_base(cname):
-    head, s, p, tie = CHARS[cname]
+    head, s, p, tie, extras = CHARS[cname]
     H = HEAD[head]
     out = {}
-    for d, hk in (('down', 'down'), ('up', 'up'), ('side', 'side')):
+    for d in ('down', 'up', 'side'):
         for f in (0, 1):
             bk = ('side' if d == 'side' else 'down') + str(f)
             body = [r.replace('S', s).replace('P', p) for r in BODY[bk]]
             if tie and d == 'down':
                 r0 = list(body[0]); r0[7] = '3'; r0[8] = '3'; body[0] = ''.join(r0)
                 r1 = list(body[1]); r1[7] = '3'; r1[8] = '3'; body[1] = ''.join(r1)
-            out[f'{d}{f}'] = H[hk] + body
+            out[f'{d}{f}'] = decorate(H[d] + body, d, extras)
     return out
 
 TILES = {

@@ -320,7 +320,7 @@ class Ent {
     else { name = `c_${this.ch}_side${walking ? 1 : 0}`; flip = this.dir === 'right'; }
     const img = artCanvas(name, flip);
     if (img) ctx.drawImage(img, sx, sy + 16 - img.height);
-    if (this.bubble) { box(sx + 1, sy - 23, 14, 14); drawText('!', sx + 6, sy - 20); }
+    if (this.bubble) { box(sx + 1, sy - 15, 14, 14); drawText('!', sx + 6, sy - 12); }
   }
 }
 

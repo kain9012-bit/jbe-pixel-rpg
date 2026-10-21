@@ -125,7 +125,7 @@ def build():
             sd1 = fit(flipg(S(f['right'], OH)), 16, OH)
         else:
             up = backof(dn); sd = dn; sd1 = bob(dn)
-        out[f'c_{k}_down0'] = rows(dn); out[f'c_{k}_down1'] = rows(bob(dn))
+        if False: out[f'c_{k}_down0'] = rows(dn); out[f'c_{k}_down1'] = rows(bob(dn))
         out[f'c_{k}_up0'] = rows(up); out[f'c_{k}_up1'] = rows(bob(up))
         out[f'c_{k}_side0'] = rows(sd); out[f'c_{k}_side1'] = rows(sd1)
         out[f'tr_{k}'] = rows(fit(S(f['front'], 52), 48, 52))
@@ -134,7 +134,7 @@ def build():
 REF = None
 def get():
     global REF
-    if REF is None: REF = build()
+    if REF is None: REF = {k: v for k, v in build().items() if not k.startswith('c_') or k == 'c_player_back'}
     return REF
 if __name__ == '__main__':
     import sys, json
