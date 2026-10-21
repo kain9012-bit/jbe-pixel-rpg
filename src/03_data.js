@@ -110,19 +110,29 @@ const SP = {};
 const DEX = [
   ['끄적이', '기획', '늘 수첩에 뭔가 적는다. 머리의 연필은 한 번도 깎은 적이 없다.'],
   ['기안이', '기획', '하루에 기안문 열 건을 거뜬히 올린다.'],
+  ['기획서', '기획', '기안이 쌓이고 쌓여 두꺼운 기획서가 되었다. 넥타이를 매면 회의에 강해진다.'],
   ['청사진', '기획', '5년 뒤의 학교를 미리 그려 둔다.'],
+  ['정책관', '기획', '학사모를 쓴 기획의 사무관. 한마디로 교육청의 방향을 정한다.'],
   ['동전이', '회계', '1원도 그냥 넘기는 법이 없다. 안경은 숫자를 보려고 쓴다.'],
   ['장부리', '회계', '장부를 부리처럼 물고 다닌다.'],
+  ['저금통', '회계', '남은 예산을 한 푼도 허투루 쓰지 않고 모아 둔다.'],
   ['결산대감', '회계', '연말이 되면 가장 강해진다.'],
+  ['금고대인', '회계', '금고 문이 열리는 날은 일 년에 단 한 번뿐이라고 한다.'],
   ['뚝딱이', '시설', '고장 난 것은 일단 고쳐 보고 생각한다.'],
   ['보수꾼', '시설', '학교 구석구석 어디가 새는지 다 안다.'],
+  ['설계꾼', '시설', '도면 없이는 못 하나 박지 않는다.'],
   ['준공대장', '시설', '준공 검사장에 홀연히 나타난다.'],
+  ['마천루', '시설', '학교 건물 전체가 몸이다. 크레인 팔로 무엇이든 옮긴다.'],
   ['포스티', '기획', '온몸에 메모지가 붙어 있다. 바람이 불면 몇 장씩 날아간다.'],
   ['칸반이', '기획', '할 일을 세 칸으로 나눠 들고 다닌다. 끝난 일은 오른쪽으로 옮긴다.'],
+  ['간트리', '기획', '할 일을 막대 그래프로 줄 세운다. 일정이 밀리면 몸이 늘어난다.'],
   ['번뜩이', '기획', '회의 중에 아이디어가 번쩍 떠오른다.'],
+  ['상황판', '기획', '모니터 네 대로 학교 전체 상황을 한눈에 본다.'],
   ['영수증이', '회계', '몸이 길게 늘어나는 영수증이다. 증빙을 무엇보다 소중히 여긴다.'],
   ['증빙대장', '회계', '증빙 없는 지출을 보면 참지 못한다.'],
+  ['전표철', '회계', '전표 묶음을 큰 집게로 꽉 물고 다닌다.'],
   ['딸깍이', '회계', '계산기 소리가 곧 울음소리다.'],
+  ['청렴관', '회계', '저울을 든 회계의 사무관. 한 치의 기울어짐도 허락하지 않는다.'],
   ['점검이', '시설', '체크리스트를 들고 다닌다.'],
   ['안전모', '시설', '현장에서는 절대 모자를 벗지 않는다.'],
   ['짤랑이', '시설', '학교 열쇠 꾸러미가 몸이다.'],
@@ -134,7 +144,9 @@ const DEX = [
   ['공고판', '계약', '몸에 공고문이 붙어 있다.'],
   ['출석이', '인사', '매일 8시 50분에 정확히 도착한다. 머리의 종은 아침마다 울린다.'],
   ['복무관', '인사', '근태를 한눈에 꿰뚫어 본다.'],
+  ['근평이', '인사', '근무평정표를 들고 다닌다. 도장은 늘 S다.'],
   ['인사통', '인사', '누가 어디에 있는지 다 안다.'],
+  ['시계탑', '인사', '시계탑 종이 울리면 모든 교행몬이 정시에 퇴근한다.'],
   ['월급이', '인사', '매달 같은 날 활짝 웃는다.'],
   ['수당왕', '인사', '수당 계산이 취미다.'],
   ['전입이', '인사', '낯선 곳에서 오히려 더 강해진다.'],
@@ -176,23 +188,37 @@ const LEARN = {
   포스티: [[1, '보고서 제출'], [2, '메모하기'], [3, '일정 역산'], [6, '개조식 정리'], [8, '우선순위 정하기'], [11, '로드맵']],
   영수증이: [[1, '보고서 제출'], [2, '셈하기'], [3, '예산 동결'], [6, '엑셀 합계'], [8, '자동 대사'], [11, '피벗 테이블']],
 };
-// evo: 모습이 바뀌는 다음 단계 (8급 승진 때 1차, 6급 승진 때 2차)
+// evo: 다음 직급의 모습 (9급 → 8급 → 7급 → 6급 → 사무관, 승진할 때마다 바뀜)
 defSp('끄적이', { art: 'm_kkeut', base: [56, 56, 58, 78, 62], exp: 64, rate: 45, learn: LEARN.끄적이, evo: '기안이' });
-defSp('기안이', { art: 'm_gian', base: [75, 72, 75, 100, 81], exp: 141, rate: 45, learn: LEARN.끄적이, evo: '청사진' });
-defSp('청사진', { art: 'm_cheongsajin', base: [100, 94, 100, 131, 102], exp: 208, rate: 45, learn: LEARN.끄적이 });
+defSp('기안이', { art: 'm_gian', base: [75, 72, 75, 100, 81], exp: 141, rate: 45, learn: LEARN.끄적이, evo: '기획서' });
+defSp('기획서', { art: 'm_gihoek', base: [88, 83, 88, 116, 92], exp: 174, rate: 45, learn: LEARN.끄적이, evo: '청사진' });
+defSp('청사진', { art: 'm_cheongsajin', base: [100, 94, 100, 131, 102], exp: 208, rate: 45, learn: LEARN.끄적이, evo: '정책관' });
+defSp('정책관', { art: 'm_jeongchaek', base: [115, 108, 115, 151, 117], exp: 250, rate: 45, learn: LEARN.끄적이 });
 defSp('동전이', { art: 'm_dongjeon', base: [58, 65, 65, 58, 60], exp: 64, rate: 45, learn: LEARN.동전이, evo: '장부리' });
-defSp('장부리', { art: 'm_jangburi', base: [78, 85, 85, 75, 75], exp: 141, rate: 45, learn: LEARN.동전이, evo: '결산대감' });
-defSp('결산대감', { art: 'm_gyeolsan', base: [102, 112, 112, 100, 94], exp: 208, rate: 45, learn: LEARN.동전이 });
+defSp('장부리', { art: 'm_jangburi', base: [78, 85, 85, 75, 75], exp: 141, rate: 45, learn: LEARN.동전이, evo: '저금통' });
+defSp('저금통', { art: 'm_jeogeum', base: [90, 98, 98, 88, 84], exp: 174, rate: 45, learn: LEARN.동전이, evo: '결산대감' });
+defSp('결산대감', { art: 'm_gyeolsan', base: [102, 112, 112, 100, 94], exp: 208, rate: 45, learn: LEARN.동전이, evo: '금고대인' });
+defSp('금고대인', { art: 'm_geumgo', base: [117, 129, 129, 115, 108], exp: 250, rate: 45, learn: LEARN.동전이 });
 defSp('뚝딱이', { art: 'm_ttukttak', base: [60, 70, 62, 50, 62], exp: 64, rate: 45, learn: LEARN.뚝딱이, evo: '보수꾼' });
-defSp('보수꾼', { art: 'm_bosu', base: [80, 92, 82, 65, 78], exp: 141, rate: 45, learn: LEARN.뚝딱이, evo: '준공대장' });
-defSp('준공대장', { art: 'm_jungong', base: [105, 125, 108, 85, 100], exp: 208, rate: 45, learn: LEARN.뚝딱이 });
+defSp('보수꾼', { art: 'm_bosu', base: [80, 92, 82, 65, 78], exp: 141, rate: 45, learn: LEARN.뚝딱이, evo: '설계꾼' });
+defSp('설계꾼', { art: 'm_seolgye', base: [92, 108, 95, 75, 89], exp: 174, rate: 45, learn: LEARN.뚝딱이, evo: '준공대장' });
+defSp('준공대장', { art: 'm_jungong', base: [105, 125, 108, 85, 100], exp: 208, rate: 45, learn: LEARN.뚝딱이, evo: '마천루' });
+defSp('마천루', { art: 'm_macheon', base: [121, 144, 124, 98, 115], exp: 250, rate: 45, learn: LEARN.뚝딱이 });
 defSp('출석이', { art: 'm_chulseok', base: [32, 52, 35, 28, 70], exp: 50, rate: 255, learn: LEARN.출석이, evo: '복무관' });
-defSp('복무관', { art: 'm_bokmu', base: [52, 72, 52, 44, 90], exp: 116, rate: 127, learn: LEARN.출석이, evo: '인사통' });
-defSp('인사통', { art: 'm_insa', base: [72, 92, 72, 60, 105], exp: 190, rate: 45, learn: LEARN.출석이 });
+defSp('복무관', { art: 'm_bokmu', base: [52, 72, 52, 44, 90], exp: 116, rate: 127, learn: LEARN.출석이, evo: '근평이' });
+defSp('근평이', { art: 'm_geunpyeong', base: [62, 82, 62, 52, 98], exp: 153, rate: 45, learn: LEARN.출석이, evo: '인사통' });
+defSp('인사통', { art: 'm_insa', base: [72, 92, 72, 60, 105], exp: 190, rate: 45, learn: LEARN.출석이, evo: '시계탑' });
+defSp('시계탑', { art: 'm_sigyetap', base: [83, 106, 83, 69, 121], exp: 250, rate: 45, learn: LEARN.출석이 });
 defSp('포스티', { art: 'm_posti', base: [40, 35, 40, 50, 45], exp: 55, rate: 200, learn: LEARN.포스티, evo: '칸반이' });
-defSp('칸반이', { art: 'm_kanban', base: [62, 50, 62, 72, 58], exp: 140, rate: 90, learn: LEARN.포스티 });
+defSp('칸반이', { art: 'm_kanban', base: [62, 50, 62, 72, 58], exp: 140, rate: 90, learn: LEARN.포스티, evo: '간트리' });
+defSp('간트리', { art: 'm_gantt', base: [71, 57, 71, 83, 67], exp: 160, rate: 60, learn: LEARN.포스티, evo: '번뜩이' });
+defSp('번뜩이', { art: 'm_beonttuk', base: [81, 65, 81, 94, 75], exp: 180, rate: 45, learn: LEARN.포스티, evo: '상황판' });
+defSp('상황판', { art: 'm_sanghwang', base: [93, 75, 93, 108, 87], exp: 230, rate: 45, learn: LEARN.포스티 });
 defSp('영수증이', { art: 'm_receipt', base: [42, 46, 40, 35, 56], exp: 56, rate: 190, learn: LEARN.영수증이, evo: '증빙대장' });
-defSp('증빙대장', { art: 'm_jeungbing', base: [62, 68, 62, 52, 76], exp: 138, rate: 90, learn: LEARN.영수증이 });
+defSp('증빙대장', { art: 'm_jeungbing', base: [62, 68, 62, 52, 76], exp: 138, rate: 90, learn: LEARN.영수증이, evo: '전표철' });
+defSp('전표철', { art: 'm_jeonpyo', base: [71, 78, 71, 60, 87], exp: 160, rate: 60, learn: LEARN.영수증이, evo: '딸깍이' });
+defSp('딸깍이', { art: 'm_ttalkkak', base: [81, 88, 81, 68, 99], exp: 180, rate: 45, learn: LEARN.영수증이, evo: '청렴관' });
+defSp('청렴관', { art: 'm_cheongnyeom', base: [93, 102, 93, 78, 114], exp: 230, rate: 45, learn: LEARN.영수증이 });
 
 // ───────── 직급·호봉 ─────────
 const GRADES = ['9급', '8급', '7급', '6급', '사무관'];
@@ -247,9 +273,7 @@ function calcStats(m) {
 }
 function makeMon(sp, lv, fixedIv) {
   const grade = gradeFor(lv);
-  // 직급에 맞는 모습으로 (8급부터 1차, 6급부터 2차)
-  if (grade >= 1 && SP[sp].evo && !isEvolved(sp)) sp = SP[sp].evo;
-  if (grade >= 3 && SP[sp].evo && SP[SP[sp].evo].art) sp = SP[sp].evo;
+  sp = formAt(sp, grade);  // 직급에 맞는 모습으로
   const iv = fixedIv != null ? [fixedIv, fixedIv, fixedIv, fixedIv, fixedIv] : [0, 0, 0, 0, 0].map(() => rnd(0, 15));
   const m = { sp, lv, grade, exp: expAt(lv), iv, st: null, moves: [] };
   calcStats(m); m.hp = m.mhp;
@@ -259,8 +283,14 @@ function makeMon(sp, lv, fixedIv) {
 }
 
 function isEvolved(sp) { return Object.values(SP).some(q => q.evo === sp); }
+function baseOf(sp) { let s = sp; for (let i = 0; i < 6; i++) { const p = Object.values(SP).find(q => q.evo === s); if (!p) break; s = p.name; } return s; }
+// 계열의 기본 모습에서 직급(0~4)만큼 승진한 모습
+function formAt(sp, grade) { let s = baseOf(sp); for (let i = 0; i < grade && SP[s].evo && SP[SP[s].evo].art; i++) s = SP[s].evo; return s; }
 function migrateMon(m) {
   if (m.grade == null) { m.lv = Math.max(2, Math.min(MAX_HOBONG, Math.round(m.lv / EFF))); m.grade = gradeFor(m.lv); m.exp = expAt(m.lv); calcStats(m); m.hp = Math.min(m.hp, m.mhp); }
+  // 직급마다 모습이 생기기 전 저장본: 지금 직급의 모습으로 맞춤
+  const f = formAt(m.sp, m.grade || 0);
+  if (f !== m.sp) { m.sp = f; calcStats(m); m.hp = Math.min(m.hp, m.mhp); }
 }
 
 // ───────── 행정실 조화 (직급 구성 보정) ─────────

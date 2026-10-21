@@ -6,6 +6,8 @@ ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 from art_chars import compose, CHARS, TILES
 from art_mons import M
+from art_mons2 import N as M2
+M = {**M, **M2}
 
 ART = {}
 def add(name, rows):

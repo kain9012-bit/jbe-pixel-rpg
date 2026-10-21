@@ -729,7 +729,7 @@ async function checkEvolutions(fadeBack = true) {
     if (g >= 4 || m.lv < PROMO_AT[g]) continue;
     const ng = g + 1;
     let to = null;
-    if ((ng === 1 || ng === 3) && SP[m.sp].evo && SP[SP[m.sp].evo].art) to = SP[m.sp].evo;
+    if (SP[m.sp].evo && SP[SP[m.sp].evo].art) to = SP[m.sp].evo;
     await evolve(m, to, ng);
     did = true;
   }

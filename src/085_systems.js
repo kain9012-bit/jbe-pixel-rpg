@@ -91,7 +91,7 @@ async function tradeTalk() {
   playMusic(curMap().music);
   await say('전입해 온 교행몬은 낯선 곳에서 더 열심히 해서 경력을 1.5배로 쌓아요!');
 }
-function isLineOf(base, sp) { let s = base; for (let i = 0; i < 3 && s; i++) { if (s === sp) return true; s = SP[s] && SP[s].evo; } return false; }
+function isLineOf(base, sp) { let s = base; for (let i = 0; i < 5 && s; i++) { if (s === sp) return true; s = SP[s] && SP[s].evo; } return false; }
 
 // ───────── 메신저 쪽지 의뢰 ─────────
 const QUESTS = {
