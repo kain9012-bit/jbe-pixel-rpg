@@ -5,6 +5,7 @@ async function startMenu() {
     const opts = [];
     if (G.S.flags.dex) opts.push(['업무도감', dexMenu]);
     if (G.S.party.length) opts.push(['교행몬', () => partyMenu('field')]);
+    opts.push(['지도', townMap]);
     opts.push(['가방', () => bagMenu(false)]);
     opts.push([G.S.name, cardMenu]);
     opts.push(['저장', saveMenu]);
@@ -307,4 +308,88 @@ async function restCounter(n) {
   playMusic(m.music);
   await say('기다리셨죠! 교행몬들이 모두 기운을 되찾았어요.');
   await say('또 들러 주세요!');
+}
+
+// ───────── 전북 지도 ─────────
+// 시군 위치: 실제 경위도를 화면 좌표로 옮김 (x: 126.45~127.85°E, y: 36.15~35.25°N)
+const REGIONS = [
+  ['wansan', '완산 마을', 127.14, 35.78, '전주 남쪽 한옥 마을. 여행의 출발점'],
+  ['jeonju', '전주', 127.15, 35.83, '교육청 본청이 있는 도시. 전주교육지원청은 관장 부재 중'],
+  ['wanju', '완주', 127.22, 35.92, '관문 01 · 기획형 · 관장 한결'],
+  ['jinan', '진안', 127.43, 35.79, '관문 02 · 시설형 · 마이산 아래 산골 마을'],
+  ['muju', '무주', 127.66, 36.0, '관문 03 · 인사형 · 덕유산 산골 마을'],
+  ['jangsu', '장수', 127.52, 35.65, '관문 04 · 회계형 · 고원 마을'],
+  ['namwon', '남원', 127.39, 35.42, '관문 05 · 민원형 · 광한루가 있는 도시'],
+  ['imsil', '임실', 127.28, 35.62, '관문 06 · 계약형 · 치즈 마을'],
+  ['sunchang', '순창', 127.14, 35.37, '관문 07 · 회계형 · 장독대 마을'],
+  ['jeongeup', '정읍', 126.86, 35.57, '관문 08 · 인사형 · 내장산 단풍'],
+  ['gochang', '고창', 126.70, 35.43, '관문 09 · 정보형 · 고인돌 마을'],
+  ['buan', '부안', 126.73, 35.73, '관문 10 · 시설형 · 바닷가 마을'],
+  ['gimje', '김제', 126.88, 35.80, '관문 11 · 기획형 · 지평선 들판'],
+  ['gunsan', '군산', 126.74, 35.97, '관문 12 · 계약형 · 항구 도시'],
+  ['iksan', '익산', 126.96, 35.95, '관문 13 · 정보형 · 미륵사지 석탑'],
+];
+const ROUTE = ['wansan', 'jeonju', 'wanju', 'jinan', 'muju', 'jangsu', 'namwon', 'imsil', 'sunchang', 'jeongeup', 'gochang', 'buan', 'gimje', 'gunsan', 'iksan', 'jeonju'];
+const JB_OUTLINE = [[126.68, 36.02], [126.95, 36.1], [127.25, 36.13], [127.55, 36.14], [127.8, 36.04], [127.86, 35.86], [127.76, 35.63], [127.63, 35.4], [127.4, 35.3], [127.13, 35.29], [126.92, 35.36], [126.68, 35.33], [126.48, 35.42], [126.53, 35.58], [126.45, 35.68], [126.55, 35.76], [126.7, 35.82], [126.6, 35.93]];
+const geo = (lon, lat) => [Math.round(10 + (lon - 126.45) / 1.4 * 140), Math.round(4 + (36.15 - lat) / 0.9 * 88)];
+async function townMap() {
+  const here = curMap().region || (curMap().exit && MAPS[curMap().exit.to].region) || null;
+  let i = Math.max(0, REGIONS.findIndex(r => r[0] === here));
+  const w = {
+    update() {
+      const r = REGIONS[i];
+      let best = -1, bd = 1e9;
+      for (const [k, d] of [['up', [0, -1]], ['down', [0, 1]], ['left', [-1, 0]], ['right', [1, 0]]]) {
+        if (!nav(k)) continue;
+        const [x0, y0] = geo(r[2], r[3]);
+        REGIONS.forEach((q, j) => {
+          if (j === i) return;
+          const [x1, y1] = geo(q[2], q[3]), vx = x1 - x0, vy = y1 - y0;
+          const along = vx * d[0] + vy * d[1]; if (along <= 0) return;
+          const side = Math.abs(vx * d[1]) + Math.abs(vy * d[0]);
+          const sc = along + side * 2; if (sc < bd) { bd = sc; best = j; }
+        });
+      }
+      if (best >= 0) { i = best; sfx('sel'); }
+      if (PRESS.a || PRESS.b) { sfx('sel'); this.resolve(); }
+    },
+    draw() {
+      fillScr(0);
+      // 바다 물결
+      ctx.fillStyle = PAL[1];
+      for (let y = 6; y < 92; y += 8) for (let x = 2 + (y % 16); x < 40; x += 16) { ctx.fillRect(x, y, 3, 1); ctx.fillRect(x + 3, y - 1, 2, 1); }
+      // 땅
+      const pts = JB_OUTLINE.map(([a, b]) => geo(a, b));
+      ctx.fillStyle = PAL[1]; ctx.beginPath(); pts.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = PAL[3];
+      for (let k = 0; k < pts.length; k++) {
+        const [x0, y0] = pts[k], [x1, y1] = pts[(k + 1) % pts.length], n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+        for (let t = 0; t <= n; t++) ctx.fillRect(Math.round(x0 + (x1 - x0) * t / n), Math.round(y0 + (y1 - y0) * t / n), 1, 1);
+      }
+      // 동쪽 산줄기
+      ctx.fillStyle = PAL[2];
+      for (const [lon, lat] of [[127.55, 36.07], [127.72, 35.95], [127.6, 35.82], [127.68, 35.7], [127.5, 35.5], [126.95, 35.5]]) { const [x, y] = geo(lon, lat); for (let q = 0; q < 4; q++) ctx.fillRect(x - q, y + q, 2 * q + 1, 1); }
+      drawText('서해', 3, 84, 2);
+      // 길
+      ctx.fillStyle = PAL[2];
+      for (let k = 0; k < ROUTE.length - 1; k++) {
+        const a = REGIONS.find(r => r[0] === ROUTE[k]), b = REGIONS.find(r => r[0] === ROUTE[k + 1]);
+        const [x0, y0] = geo(a[2], a[3]), [x1, y1] = geo(b[2], b[3]), n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+        for (let t = 0; t <= n; t += 3) ctx.fillRect(Math.round(x0 + (x1 - x0) * t / n), Math.round(y0 + (y1 - y0) * t / n), 1, 1);
+      }
+      // 시군 점
+      REGIONS.forEach((r, j) => {
+        const [x, y] = geo(r[2], r[3]), v = G.S.visited && G.S.visited[r[0]];
+        ctx.fillStyle = PAL[3]; ctx.fillRect(x - 2, y - 2, 5, 5);
+        ctx.fillStyle = PAL[v ? 3 : 0]; ctx.fillRect(x - 1, y - 1, 3, 3);
+        if (r[0] === here && (G.frame >> 4) % 2) { ctx.fillStyle = PAL[0]; ctx.fillRect(x - 1, y - 1, 3, 3); }
+      });
+      const r = REGIONS[i], [cx, cy] = geo(r[2], r[3]);
+      ctx.fillStyle = PAL[3]; ctx.fillRect(cx - 4, cy - 4, 9, 1); ctx.fillRect(cx - 4, cy + 4, 9, 1); ctx.fillRect(cx - 4, cy - 4, 1, 9); ctx.fillRect(cx + 4, cy - 4, 1, 9);
+      box(0, 96, 160, 48);
+      drawText(r[1] + (r[0] === here ? '  ◀ 지금 여기' : ''), 9, 102);
+      wrap(r[4] + (G.S.visited && G.S.visited[r[0]] ? '' : (['wansan', 'jeonju', 'wanju'].includes(r[0]) ? '' : ' (준비 중)')), 142).slice(0, 2).forEach((l, k) => drawText(l, 9, 116 + k * 13, 2));
+    },
+  };
+  await pushUI(w);
 }

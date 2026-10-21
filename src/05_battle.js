@@ -621,11 +621,60 @@ async function battle(opt) {
   for (const m of G.S.party) { delete m.sleepN; }
   if (res === 'lose' && !opt.noWhiteout) { await whiteout(); return res; }
   if (res === 'lose') healAll();
+  G.fade = 4;
+  await checkEvolutions();
   playMusic(curMap().music);
   OW.tick();
   await fadeIn(3);
   return res;
 }
+// ───────── 승진 ─────────
+class EvoScene {
+  constructor(m, to) { this.m = m; this.from = SP[m.sp].art; this.to = SP[to].art; this.show = this.from; this.flash = 0; }
+  update() {}
+  draw() {
+    fillScr(0);
+    const img = artCanvas(this.show);
+    ctx.drawImage(img, 60, 22);
+    if (this.flash) { ctx.globalAlpha = 0.5; ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, W, 96); ctx.globalAlpha = 1; }
+    if (!G.ui.length) box(TB.x, TB.y, TB.w, TB.h);
+  }
+}
+async function checkEvolutions() {
+  for (const m of G.S.party) {
+    const e = SP[m.sp].evo;
+    if (!e || m.lv < e[0] || !SP[e[1]].art || m.hp <= 0) continue;
+    await evolve(m, e[1]);
+  }
+}
+async function evolve(m, to) {
+  const prev = G.scene, old = m.sp;
+  const S = new EvoScene(m, to);
+  playMusic(null);
+  await fadeOut(0, 3); G.scene = S; await fadeIn(3);
+  await say(`어? ${monName(m)}의 상태가…!`);
+  let cancel = false;
+  for (let i = 0, gap = 24; i < 14; i++, gap = Math.max(3, gap - 2)) {
+    S.show = i % 2 ? S.to : S.from; sfx('tick');
+    for (let k = 0; k < gap; k++) { await sleepF(1); if (BTN.b) cancel = true; }
+    if (cancel) break;
+  }
+  if (cancel) {
+    S.show = S.from;
+    await say(`어라? ${J(monName(m), '은는')} 승진을 미뤘다.`);
+  } else {
+    S.show = S.to; S.flash = 1; await sleepF(6); S.flash = 0;
+    const w = jingle('badge');
+    const oldMhp = m.mhp;
+    m.sp = to; calcStats(m); m.hp = Math.max(1, m.hp + m.mhp - oldMhp);
+    G.S.seen[to] = 1; G.S.caught[to] = 1;
+    await say(`축하합니다! ${J(old, '은는')} ${to}${(jong(to) === 0 || jong(to) === 8) ? '로' : '으로'} 승진했다!`);
+    if (w) await sleepF(10);
+    for (const [l, mv] of SP[to].learn) if (l === m.lv && !m.moves.some(x => x.id === mv)) await learnMove(m, mv);
+  }
+  await fadeOut(0, 3); G.scene = prev;
+}
+
 async function wildBattle(sp, lv) { await battle({ wild: [sp, lv] }); }
 async function whiteout() {
   const lost = Math.floor(G.S.money / 2);

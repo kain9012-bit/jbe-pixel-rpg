@@ -59,7 +59,7 @@ function houseMap(id, exitTo, ex, ey, npcs) {
 
 // ───────── 완산 마을 ─────────
 defMap('town', {
-  name: '완산 마을',
+  name: '완산 마을', region: 'wansan', style: 'hanok',
   music: 'town',
   rows: [
     'TTTTTTTT....TTTTTTTT',
@@ -71,13 +71,13 @@ defMap('town', {
     'TT................TT',
     'TT..S.......S.....TT',
     'TT................TT',
-    'TT,,,,,,,,,,,,,,,,TT',
+    'TT;;;;;;;;;;;;;;;;TT',
     'TT................TT',
     'TT................TT',
     'TT........S.......TT',
     'TT..*.*...........TT',
     'TT................TT',
-    'TT..FFFFF.....*.*.TT',
+    'TT..JJJJJ.....*.*.TT',
     'TTwwwwwwwwTTTTTTTTTT',
     'TTTTTTTTTTTTTTTTTTTT',
   ],
@@ -330,7 +330,7 @@ defMap('route1', {
 
 // ───────── 전주 ─────────
 defMap('jeonju', {
-  name: '전주',
+  name: '전주', region: 'jeonju', style: 'hanok',
   music: 'town',
   rows: [
     'TTTTTTTTTT....TTTTTTTTTT',
@@ -340,17 +340,17 @@ defMap('jeonju', {
     'TT....................TT',
     'TT....................TT',
     'TT............S.......TT',
-    'TT,,,,,,,,,,,,,,,,,,,,TT',
+    'TT;;;;;;;;;;;;;;;;;;;;TT',
     'TT....................TT',
     'TT....................TT',
     'TT....................TT',
     'TT....................TT',
     'TT....................TT',
     'TT....................TT',
-    'TT.....**.......**....TT',
+    'TT.....**...;;..**....TT',
     'TT....................TT',
     'TT..S.................TT',
-    'TT....FFFF....FFFF....TT',
+    'TT..JJJJJJ....JJJJJJ..TT',
     'TT....................TT',
     'TTTTTTTTTT....TTTTTTTTTT',
   ],
@@ -446,11 +446,11 @@ defMap('forest', {
 
 // ───────── 완주 ─────────
 defMap('wanju', {
-  name: '완주',
+  name: '완주', region: 'wanju', style: 'mountain',
   music: 'town',
   rows: [
-    'TTTTTTTTTTTTTTTTTTTTTTTT',
-    'TT....................TT',
+    'AAAAYYYAAAAAAYYYAAAAAAAA',
+    'YY....................YY',
     'TT....................TT',
     'TT....................TT',
     'TT....................TT',
@@ -461,11 +461,11 @@ defMap('wanju', {
     'TT....................TT',
     'TT....................TT',
     'TT....................TT',
-    'TT..**............**..TT',
+    'TT.UUUU.R......R.UUUU.TT',
     'TT.......S............TT',
-    'TT....................TT',
-    'TT....................TT',
-    'TTTTTTTTTT....TTTTTTTTTT',
+    'TT..UUUU..........R...YY',
+    'TY................UUU.TT',
+    'YYTTYYTTYT....TYYTTYYTTY',
   ],
   buildings: [
     { k: 'office', x: 9, y: 1, label: '완주교육지원청', to: 'wgym' },
@@ -504,7 +504,7 @@ defMap('wgym', {
   signs: Object.fromEntries(['1,2', '8,2', '1,9', '8,9'].map(k => [k, () => say(`완주교육지원청 관장 한결\n도전에 성공한 트레이너: ${G.S.badges[0] ? G.S.name : '아직 없음'}`)])),
   npcs: [
     { id: 'leader', x: 4, y: 1, ch: 'leader', trainer: {
-      id: 'g1', name: '관장 한결', ch: 'leader', team: [['포스티', 10], ['칸반이', 12]], money: 99, sight: 0,
+      id: 'g1', name: '관장 한결', ch: 'leader', team: [['포스티', 9], ['칸반이', 12]], money: 99, sight: 0,
       before: ['나는 완주교육지원청 관장 한결.', '모든 일은 계획에서 시작되지. 계획 없는 열정은 야근으로 끝나거든.', '네 계획을 보여 줘!'],
       defeat: '…좋은 계획이었어. 인정할게.',
       onWin: gymWin,
