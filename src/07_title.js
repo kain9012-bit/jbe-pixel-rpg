@@ -47,6 +47,7 @@ async function titleMenu() {
 function newState() {
   return {
     name: '새봄', rival: '한빛', map: 'home', x: 5, y: 5, dir: 'up',
+    clock: 540, evalPts: 0, cnt: {}, quests: {}, trades: {},
     party: [], box: [], bag: {}, money: 3000, flags: {}, visited: {}, seen: {}, caught: {}, badges: [], time: 0, repel: 0,
     lastHeal: { map: 'home', x: 5, y: 5, msg: '정신을 차려 보니 집이었다. 엄마가 교행몬들을 돌봐 주셨다.' },
   };

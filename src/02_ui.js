@@ -1,7 +1,7 @@
 // ───────── 전역 상태 ─────────
 const G = {
   scene: null, ui: [], waits: [], frame: 0, lock: 0, fade: 0, fadeCol: 0,
-  opt: { speed: 1, sound: 1, pal: 0 },
+  opt: { speed: 2, sound: 1, pal: 0 },
   S: null, // 저장 대상 상태
 };
 
@@ -181,7 +181,7 @@ function step() {
   const top = G.ui[G.ui.length - 1];
   if (top) top.update(); else if (G.scene && G.scene.update) G.scene.update();
   if (G.scene && G.scene.tick) G.scene.tick();
-  if (G.S) G.S.time += 1 / 60;
+  if (G.S) { G.S.time += 1 / 60; tickClock(); }
   PRESS = {};
 }
 function render() {

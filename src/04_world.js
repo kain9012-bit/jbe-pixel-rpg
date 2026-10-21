@@ -1,6 +1,6 @@
 // ───────── 타일 ─────────
 let TILEC = {}, BLDC = {};
-const SOLID = new Set(['J', 'Y', 'R', 'A', 'L', 'Z', 'T', 'F', 'S', 'B', 'w', '#', 'W', 'C', 'K', 'P', 'H', 'O', 'E', 'V', 'X', 'Q']);
+const SOLID = new Set(['G', 'J', 'Y', 'R', 'A', 'L', 'Z', 'T', 'F', 'S', 'B', 'w', '#', 'W', 'C', 'K', 'P', 'H', 'O', 'E', 'V', 'X', 'Q']);
 function tileCanvas(ch, fr) {
   const key = ch + fr;
   if (TILEC[key]) return TILEC[key];
@@ -17,6 +17,10 @@ function tileCanvas(ch, fr) {
     case '*': art(fr ? 't_flower1' : 't_flower0'); break;
     case 'w': art('t_water0'); if (fr) { x.save(); x.translate(16, 0); x.scale(-1, 1); x.drawImage(artCanvas('t_water0'), 0, 0); x.restore(); } break;
     case 'X': f(3, 0, 0, 16, 16); break;
+    case 'G': // 결재선 차단봉
+      art('t_ground'); f(3, 1, 4, 3, 12); f(1, 2, 5, 1, 10); f(3, 12, 4, 3, 12); f(1, 13, 5, 1, 10);
+      f(3, 0, 6, 16, 4); for (let i = 1; i < 15; i += 4) { f(0, i, 7, 2, 2); f(2, i + 2, 7, 2, 2); }
+      f(3, 4, 0, 8, 6); f(0, 5, 1, 6, 4); f(3, 6, 2, 1, 1); f(3, 9, 2, 1, 1); f(3, 6, 3, 4, 1); break;
     case 'J': // 기와 얹은 돌담
       art('t_ground'); f(3, 0, 1, 16, 4); f(2, 0, 2, 16, 2); for (let i = 1; i < 16; i += 3) f(1, i, 2, 1, 1);
       f(3, 0, 5, 16, 10); 
@@ -347,6 +351,7 @@ const OW = {
   passable(x, y, who) {
     const m = curMap(), t = tileAt(m, x, y);
     if (!t.m) return false;
+    if (t.ch === 'G') return gateOpen(t.m, t.x, t.y) && !(t.m === m && this.npcAt(x, y)) && !(who !== this.P && this.P.x === x && this.P.y === y);
     if (SOLID.has(t.ch)) return false;
     if (t.ch === 'D') { const w = t.m.warps[t.x + ',' + t.y]; if (!w || w.locked) return false; }
     if (t.m === m && this.npcAt(x, y)) return false;
@@ -418,8 +423,9 @@ const OW = {
     if (ch === 'M' && P.dir === 'down' && m.exit) { run(() => exitMat()); return; }
     if (m.onStep && m.onStep(P.x, P.y)) return;
     if (this.checkTrainers()) return;
-    if (ch === 'g' && m.wild && chance(1 / 10)) {
+    if (ch === 'g' && m.wild && chance(isOvertime() ? 1 / 7 : 1 / 10)) {
       const pick = pickWild(m.wild);
+      if (isOvertime()) pick[1]++;
       if (G.S.repel > 0 && pick[1] < leadLevel()) return;
       run(() => wildBattle(pick[0], pick[1]));
     }
@@ -449,6 +455,7 @@ const OW = {
     if (t.m !== m) return;
     const key = tx + ',' + ty;
     if (t.ch === 'D' && m.warps[key] && m.warps[key].locked) { run(() => say(m.warps[key].locked)); return; }
+    if (t.ch === 'G' && !gateOpen(m, tx, ty)) { run(() => gateTry(m, tx, ty)); return; }
     if (m.signs[key]) { const s = m.signs[key]; run(async () => { if (typeof s === 'function') await s(); else await say(s); }); return; }
     const txt = { H: '업무 관련 책이 빽빽하게 꽂혀 있다.', P: '인력풀 단말이다. 아직 준비 중인 것 같다.', V: '텔레비전에서 교행몬 뉴스가 나오고 있다.', E: '푹신해 보이는 침대다.', Q: '교행몬 모양의 동상이다.', Z: '2층으로 가는 계단이다. 지금은 올라갈 일이 없다.' }[t.ch];
     if (txt) run(() => say(txt));
@@ -461,6 +468,7 @@ const OW = {
     for (let ty = y0; ty <= y0 + 10; ty++) for (let tx = x0; tx <= x0 + 11; tx++) {
       const t = tileAt(m, tx, ty);
       let ch = t.ch;
+      if (ch === 'G' && t.m && gateOpen(t.m, t.x, t.y)) ch = '.';
       if (ch === 'K') { const isK = (a, b) => tileAt(m, a, b).ch === 'K'; ch = 'K' + (isK(tx - 1, ty) ? 'l' : '') + (isK(tx + 1, ty) ? 'r' : '') + (isK(tx, ty - 1) ? 'u' : '') + (isK(tx, ty + 1) ? 'd' : ''); }
       ctx.drawImage(tileCanvas(ch, (ch === '*' || ch === 'w') ? fr : 0), tx * 16 - cx, ty * 16 - cy);
     }
@@ -482,6 +490,7 @@ const OW = {
       const k = this.banner.t, off = k > 140 ? -(k - 140) * 3 : (k < 10 ? -(10 - k) * 3 : 0);
       box(4, 4 + off, tw, 22); drawText(this.banner.text, 12, 10 + off);
     }
+    if (G.S && !(this.banner && this.banner.t > 0)) drawClock();
   },
 };
 function pickWild(w) {

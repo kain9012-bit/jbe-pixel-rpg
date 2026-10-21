@@ -13,6 +13,8 @@ class Battle {
     this.pi = G.S.party.findIndex(m => m.hp > 0); this.M = G.S.party[this.pi];
     this.stE = freshStages(); this.stP = freshStages(); this.vE = freshVol(); this.vP = freshVol();
     this.part = new Set([this.pi]); this.tries = 0;
+    this.clean = true;
+    this.hP = teamHarmony(G.S.party); this.hE = this.wild ? teamHarmony([]) : teamHarmony(this.eParty);
     this.eX = -48; this.pX = 160; this.eDy = 0; this.pDy = 0; this.eHide = false; this.pHide = false;
     this.eBlink = 0; this.pBlink = 0; this.hudE = false; this.hudP = false;
     this.eTrainer = !this.wild; this.pTrainer = true; this.ball = null;
@@ -84,6 +86,7 @@ class Battle {
     await anim(40, i => { const k = (i + 1) / 40; this.eX = Math.round(-48 + (112 + 48) * k); this.pX = Math.round(160 - (160 - 12) * k); });
     if (this.wild) {
       this.eTrainer = false; this.hudE = true;
+      G.S.cnt.wild = (G.S.cnt.wild || 0) + 1;
       await say(`앗! 미발령 ${J(this.E.sp, '이가')} 나타났다!`);
     } else {
       await say(`${J(this.tr.name, '이가')} 업무 대결을 신청했다!`);
@@ -94,6 +97,9 @@ class Battle {
     await anim(16, i => { this.pX = 12 - i * 4; });
     this.pTrainer = false; this.pX = 12;
     await this.sendMine();
+    if (this.hP.pct > 0) await say(`직급이 고루 섞여 손발이 척척! 우리 팀 능력치 +${this.hP.pct}%`, { auto: 70 });
+    else if (this.hP.pct < 0) await say(`같은 직급끼리 일이 겹친다… 우리 팀 능력치 ${this.hP.pct}%`, { auto: 70 });
+    if (!this.wild && this.hE.pct > 0) await say(`상대 팀도 직급이 고루 섞였다! 상대 능력치 +${this.hE.pct}%`, { auto: 60 });
     // 반복
     for (;;) {
       const act = this.vP.recharge ? { t: 'recharge' } : await this.chooseAction();
@@ -121,7 +127,7 @@ class Battle {
       const eMove = this.vE.recharge ? null : this.aiMove();
       const pMove = act.t === 'recharge' ? null : act.mv;
       const pPri = pMove && MV[pMove.id].fx === 'prio' ? 1 : 0, ePri = eMove && MV[eMove.id].fx === 'prio' ? 1 : 0;
-      const pS = this.M.spd * stg(this.stP.spd) * (this.M.st === 'wait' ? 0.25 : 1), eS = this.E.spd * stg(this.stE.spd) * (this.E.st === 'wait' ? 0.25 : 1);
+      const pS = this.M.spd * this.hP.mult * stg(this.stP.spd) * (this.M.st === 'wait' ? 0.25 : 1), eS = this.E.spd * this.hE.mult * stg(this.stE.spd) * (this.E.st === 'wait' ? 0.25 : 1);
       const pFirst = pPri !== ePri ? pPri > ePri : (pS !== eS ? pS > eS : chance(0.5));
       const order = pFirst ? ['p', 'e'] : ['e', 'p'];
       for (const s of order) {
@@ -312,11 +318,13 @@ class Battle {
     if (mv.fx === 'crit') crate = Math.min(0.99, crate * 8);
     const crit = Math.random() < crate;
     let A = phys ? att.atk : att.spc, D = phys ? def.def : def.spc;
+    A *= (side === 'p' ? this.hP : this.hE).mult; D *= (side === 'p' ? this.hE : this.hP).mult;
     if (!crit) { A *= stg(stA[phys ? 'atk' : 'spc']); D *= stg(stD[phys ? 'def' : 'spc']); }
     if (phys && att.st === 'stress') A /= 2;
     const L = att.lv * EFF * (crit ? 2 : 1);
     let d = Math.floor(Math.floor((Math.floor(2 * L / 5) + 2) * mv.p * A / Math.max(1, D)) / 50) + 2;
     if (mv.t && mv.t === SP[att.sp].type) d = Math.floor(d * 1.5);
+    if (mv.t && mv.t === todaySeason()[0]) d = Math.floor(d * 1.2);
     const e = eff(mv.t, SP[def.sp].type);
     d = Math.floor(d * e);
     d = Math.floor(d * rnd(217, 255) / 255);
@@ -443,6 +451,7 @@ class Battle {
     sfx('faint');
     await anim(24, i => { this.pX = 12 - i * 2; });
     this.pHide = true; this.pX = 12; this.hudP = false;
+    this.clean = false;
     await say(`${J(monName(this.M), '은는')} 녹초가 되어 퇴근했다!`);
     if (!G.S.party.some(m => m.hp > 0)) {
       await say(`${G.S.name}에게는 일할 수 있는 교행몬이 없다!`);
@@ -460,13 +469,17 @@ class Battle {
   async giveExp() {
     const alive = [...this.part].filter(i => G.S.party[i] && G.S.party[i].hp > 0);
     if (!alive.length) return;
-    const base = Math.floor(SP[this.E.sp].exp * this.E.lv / 5 * (this.wild ? 1 : 1.5));
-    const each = Math.max(1, Math.floor(base / alive.length));
+    const base = Math.floor(SP[this.E.sp].exp * this.E.lv / 3 * (this.wild ? 1 : 1.5));
+    const each0 = Math.max(1, Math.floor(base / alive.length));
+    const mentor = G.S.party.some(p => (p.grade || 0) >= 3);
     for (const i of alive) {
       const m = G.S.party[i];
       if (m.lv >= MAX_HOBONG) continue;
+      let each = each0, why = [];
+      if (mentor && (m.grade || 0) <= 1) { each = Math.floor(each * 1.5); why.push('선배 멘토링'); }
+      if (m.traded) { each = Math.floor(each * 1.5); why.push('전입 효과'); }
       m.exp += each;
-      await say(`${J(monName(m), '은는')} 경력을 ${each} 쌓았다!`);
+      await say(`${J(monName(m), '은는')} 경력을 ${each} 쌓았다!` + (why.length ? ` (${why.join('·')})` : ''));
       while (m.lv < MAX_HOBONG && m.exp >= expAt(m.lv + 1)) {
         await levelUp(m, this);
         if (m === this.M) this.dP = m.hp;
@@ -485,6 +498,7 @@ class Battle {
     const money = (this.tr.money || 20) * this.eParty[this.eParty.length - 1].lv * EFF;
     G.S.money += money;
     await say(`${J(G.S.name, '은는')} 상금으로 ${money.toLocaleString()}원을 받았다!`);
+    if (this.clean) { G.S.evalPts = (G.S.evalPts || 0) + 1; await say(`아무도 지치지 않은 깔끔한 일 처리! 근무평정 ${evalGrade()} (${G.S.evalPts}점)`); }
     this.result = 'win';
     return true;
   }
@@ -537,7 +551,7 @@ class Battle {
       if (w) await sleepF(10);
       this.ball = null;
       const isNew = !G.S.caught[E.sp];
-      G.S.caught[E.sp] = 1; G.S.seen[E.sp] = 1;
+      G.S.caught[E.sp] = 1; G.S.seen[E.sp] = 1; G.S.cnt.catch = (G.S.cnt.catch || 0) + 1;
       if (isNew && G.S.flags.dex) { await say(`업무도감에 ${E.sp}의 정보가 새로 기록되었다!`); await showDexPage(E.sp); }
       E.st = E.st || null;
       if (G.S.party.length < 6) G.S.party.push(E);
@@ -622,10 +636,12 @@ async function battle(opt) {
   if (res === 'lose' && !opt.noWhiteout) { await whiteout(); return res; }
   if (res === 'lose') healAll();
   G.fade = 4;
-  await checkEvolutions();
+  await checkEvolutions(false);
+  G.fade = 4;
   playMusic(curMap().music);
   OW.tick();
   await fadeIn(3);
+  if (G.S.flags.dex) await questCheck();
   return res;
 }
 // ───────── 승진 (볼거리 장면) ─────────
@@ -704,7 +720,8 @@ class EvoScene {
     if (!G.ui.length) box(TB.x, TB.y, TB.w, TB.h);
   }
 }
-async function checkEvolutions() {
+async function checkEvolutions(fadeBack = true) {
+  let did = false;
   for (const m of G.S.party) {
     if (m.hp <= 0) continue;
     const g = m.grade || 0;
@@ -713,7 +730,9 @@ async function checkEvolutions() {
     let to = null;
     if ((ng === 1 || ng === 3) && SP[m.sp].evo && SP[SP[m.sp].evo].art) to = SP[m.sp].evo;
     await evolve(m, to, ng);
+    did = true;
   }
+  if (did && fadeBack) { playMusic(curMap().music); OW.tick(); await fadeIn(3); }
 }
 function drumroll(n) { if (!AU.ctx || !AU.on) return; const t = AU.ctx.currentTime; for (let i = 0; i < n; i++) noise(t + i * 0.035, 0.03, 0.05 + i / n * 0.05); }
 function claps() { if (!AU.ctx || !AU.on) return; const t = AU.ctx.currentTime; for (let i = 0; i < 18; i++) noise(t + i * 0.09 + Math.random() * 0.05, 0.04, 0.09); }
@@ -765,12 +784,16 @@ async function evolve(m, to, ng) {
   const oldMhp = m.mhp, oldLv = m.lv;
   // 승진: 직급 오르고 1호봉 내려감 (경력 진행분은 유지)
   const prog = m.exp - expAt(m.lv);
-  m.grade = ng; m.lv = Math.max(1, m.lv - 1); m.exp = expAt(m.lv) + Math.max(0, Math.min(prog, expAt(m.lv + 1) - expAt(m.lv) - 1));
+  const keep = (G.S.evalPts || 0) >= 3;
+  m.grade = ng;
+  if (keep) G.S.evalPts -= 3;
+  else { m.lv = Math.max(1, m.lv - 1); m.exp = expAt(m.lv) + Math.max(0, Math.min(prog, expAt(m.lv + 1) - expAt(m.lv) - 1)); }
   if (to) { m.sp = to; G.S.seen[to] = 1; G.S.caught[to] = 1; }
   calcStats(m); m.hp = Math.max(1, Math.min(m.mhp, m.hp + m.mhp - oldMhp));
   await say(`축하합니다! ${J(old, '은는')} ${GRADES[ng]}${(jong(GRADES[ng]) === 0 || jong(GRADES[ng]) === 8) ? '로' : '으로'} 승진했다!`);
   if (to) await say(`모습도 바뀌어 ${J(to, '이가')} 되었다!`);
-  await say(`승진하면서 호봉이 재조정되어 ${oldLv}호봉에서 ${m.lv}호봉이 되었다.`);
+  if (keep) await say(`근무평정 S 가산! 호봉이 깎이지 않고 ${m.lv}호봉 그대로다!`);
+  else await say(`승진하면서 호봉이 재조정되어 ${oldLv}호봉에서 ${m.lv}호봉이 되었다.`);
   S.burst(30); claps();
   await say(PROMO_LINES[rnd(0, PROMO_LINES.length - 1)]);
   if (w) await sleepF(5);

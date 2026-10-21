@@ -26,6 +26,7 @@ const FLAVOR = {
   '자동분류': '문서가 저절로 분류되었다!', 'AI 요약': 'AI가 한 장으로 요약했다!',
   '증빙 대조': '증빙을 하나하나 대조했다!', '지적 사항': '빈틈을 정확히 짚었다!', '교차 검증': '두 자료를 맞대어 검증했다!', '원본 대조': '원본과 사본을 꼼꼼히 맞춰 봤다!',
   '야근': '밤늦게까지 버텼다…',
+  '서식 일괄 적용': '문서 서식이 버튼 하나로 맞춰졌다!', '쪽지 일괄 발송': '안내 쪽지가 한 번에 쫙 나갔다!',
 };
 const STATN = { atk: '추진력', def: '내공', spc: '전문성', spd: '처리속도', acc: '명중률', eva: '회피율' };
 
@@ -33,6 +34,8 @@ const STATN = { atk: '추진력', def: '내공', spc: '전문성', spd: '처리�
 // fx: 'foe:atk:-1' 'self:spc:1' 'st:confuse' 'heal' 'prio' 'crit' 'multi' 'recharge' 'c30:foe:spc:-1'
 const MV = {
   '보고서 제출': { t: null, p: 40, a: 100, pp: 35 },
+  '서식 일괄 적용': { t: '기획', p: 70, a: 100, pp: 15 },
+  '쪽지 일괄 발송': { t: '민원', p: 70, a: 100, pp: 15 },
   '메모하기': { t: '기획', p: 35, a: 95, pp: 35 },
   '개조식 정리': { t: '기획', p: 50, a: 100, pp: 25 },
   '일정 역산': { t: '기획', p: 0, a: 100, pp: 20, fx: 'foe:spd:-1' },
@@ -196,14 +199,17 @@ const ITEMS = {
   '알람시계': { k: 'cure', st: 'sleep', price: 100, d: '졸음을 깨운다.' },
   '부재중 표시': { k: 'repel', price: 350, d: '100걸음 동안 약한 미발령 교행몬이 나오지 않는다.' },
   '박사 택배': { k: 'key', d: '교행몬 박사 앞으로 온 택배다.' },
+  '표창장': { k: 'candy', price: 0, d: '교행몬의 호봉을 바로 1 올려 준다.' },
+  'JBEdu FORM': { k: 'tool', mv: '서식 일괄 적용', d: '한글 서식 도우미. 「서식 일괄 적용」을 가르친다. 몇 번이든 쓸 수 있다.' },
+  '스캔 이름변경기': { k: 'tool', mv: '스캔 자동 이름변경', d: '스캔 파일 이름을 자동으로 바꾸는 도구. 「스캔 자동 이름변경」을 가르친다.' },
+  '쪽지 서식 도우미': { k: 'tool', mv: '쪽지 일괄 발송', d: '메신저 쪽지 서식 도구. 「쪽지 일괄 발송」을 가르친다.' },
   '이수증01': { k: 'tm', mv: '개조식 정리', d: '직무연수 이수증 01. 「개조식 정리」를 익힌다.' },
 };
 const STN = { burn: '번아웃', wait: '결재대기', sleep: '졸음', freeze: '전산먹통', stress: '민원 스트레스' };
 const STS = { burn: '번', wait: '결', sleep: '졸', freeze: '먹', stress: '스' };
 
 // ───────── 교행몬 만들기 ─────────
-// 다음 호봉까지 필요한 경력 = 10 × 호봉²
-function expAt(lv) { return Math.round(10 * (lv - 1) * lv * (2 * lv - 1) / 6); }
+function expAt(lv) { return 5 * lv * (lv - 1); }  // 다음 호봉까지 10×호봉
 function calcStats(m) {
   const b = SP[m.sp].base, iv = m.iv, L = Math.min(100, m.lv * EFF);
   m.mhp = Math.floor((b[0] + iv[0]) * 2 * L / 100) + L + 10;
@@ -228,4 +234,22 @@ function makeMon(sp, lv, fixedIv) {
 function isEvolved(sp) { return Object.values(SP).some(q => q.evo === sp); }
 function migrateMon(m) {
   if (m.grade == null) { m.lv = Math.max(2, Math.min(MAX_HOBONG, Math.round(m.lv / EFF))); m.grade = gradeFor(m.lv); m.exp = expAt(m.lv); calcStats(m); m.hp = Math.min(m.hp, m.mhp); }
+}
+
+// ───────── 행정실 조화 (직급 구성 보정) ─────────
+// 서로 다른 직급 1종 늘 때마다 +5% (최대 +20%), 같은 직급이 3명 이상이면 1명당 -5%
+function teamHarmony(party) {
+  const list = (party || []).filter(Boolean);
+  if (list.length < 2) return { mult: 1, kinds: list.length, same: list.length, pct: 0 };
+  const cnt = {};
+  for (const m of list) cnt[m.grade || 0] = (cnt[m.grade || 0] || 0) + 1;
+  const kinds = Object.keys(cnt).length, same = Math.max(...Object.values(cnt));
+  const pct = Math.min(4, kinds - 1) * 5 - Math.max(0, same - 2) * 5;
+  return { mult: 1 + pct / 100, kinds, same, pct };
+}
+function harmonyText(party) {
+  const h = teamHarmony(party);
+  if (h.kinds < 2 && h.same < 3) return '행정실 조화: 해당 없음';
+  const sign = h.pct > 0 ? '+' : '';
+  return `조화: 직급 ${h.kinds}종, 능력치 ${sign}${h.pct}%`;
 }

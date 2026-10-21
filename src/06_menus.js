@@ -5,6 +5,7 @@ async function startMenu() {
     const opts = [];
     if (G.S.flags.dex) opts.push(['업무도감', dexMenu]);
     if (G.S.party.length) opts.push(['교행몬', () => partyMenu('field')]);
+    if (G.S.flags.dex) opts.push(['쪽지함', questMenu]);
     opts.push(['지도', townMap]);
     opts.push(['가방', () => bagMenu(false)]);
     opts.push([G.S.name, cardMenu]);
@@ -52,7 +53,7 @@ function partyPick(msg, o) { return pushUI(new PartyPick(msg, o)); }
 async function partyMenu(mode, B) {
   let start = mode === 'battle' || mode === 'forced' ? (B ? B.pi : 0) : 0;
   for (;;) {
-    const msg = mode === 'forced' ? '다음에 내보낼 교행몬을 고르세요.' : '교행몬을 고르세요.';
+    const msg = (mode === 'forced' ? '다음에 내보낼 교행몬을 고르세요.' : '교행몬을 고르세요.') + '\n' + harmonyText(G.S.party);
     const k = await partyPick(msg, { start, forced: mode === 'forced' });
     if (k < 0) return null;
     start = k;
@@ -115,7 +116,7 @@ async function statPages(m) {
 // ───────── 가방 ─────────
 function bagList(inBattle) {
   const ids = Object.keys(G.S.bag).filter(id => G.S.bag[id] > 0);
-  const order = id => ({ ball: 0, heal: 1, cure: 2, repel: 3, tm: 4, key: 5 }[ITEMS[id].k]);
+  const order = id => ({ ball: 0, heal: 1, cure: 2, candy: 3, repel: 4, tool: 5, tm: 6, key: 7 }[ITEMS[id].k]);
   ids.sort((a, b) => order(a) - order(b));
   return inBattle ? ids.filter(id => ['ball', 'heal', 'cure'].includes(ITEMS[id].k)) : ids;
 }
@@ -123,7 +124,7 @@ async function bagMenu(inBattle, B) {
   let start = 0;
   for (;;) {
     const ids = bagList(inBattle);
-    const items = () => [...bagList(inBattle).map(id => ({ label: id, right: ITEMS[id].k === 'key' ? '' : '×' + G.S.bag[id] })), { label: '닫기' }];
+    const items = () => [...bagList(inBattle).map(id => ({ label: id, right: (ITEMS[id].k === 'key' || ITEMS[id].k === 'tool') ? '' : '×' + G.S.bag[id] })), { label: '닫기' }];
     const k = await listMenu({
       x: 24, y: 2, w: 136, h: 92, start, items,
       over: me => { box(0, 96, 160, 48); const id = bagList(inBattle)[me.i]; if (id) wrap(ITEMS[id].d, 142).slice(0, 2).forEach((l, i) => drawText(l, 9, 104 + i * 17)); },
@@ -154,6 +155,27 @@ async function bagMenu(inBattle, B) {
     if (it.k === 'repel') {
       useItem(id); G.S.repel = 100; sfx('stat');
       await say(`${J(G.S.name, '은는')} ${J(id, '을를')} 붙였다! 한동안 조용할 것 같다.`);
+      continue;
+    }
+    if (it.k === 'candy') {
+      const j = await partyPick(`${J(id, '을를')} 누구에게 줄까요?`);
+      if (j < 0) continue;
+      const m = G.S.party[j];
+      if (m.lv >= MAX_HOBONG) { await say('더 이상 호봉이 오르지 않는다.'); continue; }
+      useItem(id);
+      await say(`${monName(m)}에게 ${J(id, '을를')} 수여했다!`);
+      m.exp = Math.max(m.exp, expAt(m.lv + 1));
+      await levelUp(m, null);
+      await checkEvolutions();
+      continue;
+    }
+    if (it.k === 'tool') {
+      const j = await partyPick(`「${it.mv}」 누구에게 가르칠까요?`);
+      if (j < 0) continue;
+      const m = G.S.party[j];
+      if (m.moves.some(v => v.id === it.mv)) { await say(`${J(monName(m), '은는')} 이미 ${J(it.mv, '을를')} 알고 있다!`); continue; }
+      await say(`${J(id, '을를')} 켰다! 업무경감 도구 연수 시작!`);
+      await learnMove(m, it.mv);
       continue;
     }
     if (it.k === 'tm') {
@@ -211,7 +233,8 @@ async function cardMenu() {
     drawText('이름  ' + G.S.name, 8, 22);
     drawText('소지금  ' + G.S.money.toLocaleString() + '원', 8, 38);
     const t = Math.floor(G.S.time), hh = Math.floor(t / 3600), mm = Math.floor(t / 60) % 60;
-    drawText(`시간  ${hh}:${String(mm).padStart(2, '0')}`, 8, 54);
+    drawText(`${dayIdx() + 1}일차 ${DAYS[dayIdx() % 5]} ${hhmm()}`, 8, 54);
+    drawText(`평정 ${evalGrade()}`, 116, 54);
     box(0, 78, 160, 66);
     drawText('관문 배지', 8, 83, 2);
     for (let i = 0; i < 14; i++) {
@@ -308,6 +331,7 @@ async function restCounter(n) {
   G.S.lastHeal = { map: m.id, x: OW.P.x, y: OW.P.y, msg: '정신을 차려 보니 쉼터였다. 교행몬들도 기운을 되찾았다.' };
   playMusic(m.music);
   await say('기다리셨죠! 교행몬들이 모두 기운을 되찾았어요.');
+  await afterRest();
   await say('또 들러 주세요!');
 }
 
