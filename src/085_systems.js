@@ -1,5 +1,5 @@
 // ───────── 출퇴근 시계·요일 시즌 ─────────
-// G.S.clock: 게임 분 (0일차 00:00 기준). 실제 1초 = 게임 2분
+// G.S.clock: 게임 분 (0일차 00:00 기준). 실제 1초 = 게임 1분 (하루 근무 약 9분)
 const DAYS = ['월', '화', '수', '목', '금'];
 const SEASON = [['기획', '계획 수립의 날'], ['회계', '결산의 날'], ['시설', '안전점검의 날'], ['인사', '인사의 날'], ['민원', '민원 응대의 날']];
 function dayIdx() { return Math.floor(G.S.clock / 1440); }
@@ -12,7 +12,7 @@ function tickClock() {
   if (!G.S || G.fade || G.S.clock == null) return;
   if (!(G.scene === OW || (G.scene && G.scene.constructor && G.scene.constructor.name === 'Battle'))) return;
   const before = minOfDay();
-  G.S.clock += 2 / 60;
+  G.S.clock += 1 / 60;
   const after = minOfDay();
   if (before < 17 * 60 && after >= 17 * 60) OW.banner = { text: '17:00 지금 쉬면 칼퇴!', t: 220 };
   if (before < 18 * 60 && after >= 18 * 60) OW.banner = { text: '18:00 야근 시작…', t: 220 };

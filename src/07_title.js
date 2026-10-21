@@ -19,7 +19,7 @@ const TITLE = {
     let x = 60;
     if (p < 20) x = 160 - p * 5; else if (p > 130) x = 60 - (p - 130) * 5;
     ctx.drawImage(artCanvas(TITLE_MONS[k]), x, 74);
-    ctx.drawImage(artCanvas('c_player_side0', true), 0, 0, 16, 16, 24, 82, 32, 32);
+    { const c = artCanvas('c_player_side0', true); ctx.drawImage(c, 0, 0, 16, c.height, 24, 114 - c.height * 2, 32, c.height * 2); }
     if ((t >> 5) % 2 && !this.busy) { const s = MODE === 'pc' ? 'Z 키를 누르세요' : 'A 버튼을 누르세요'; drawText(s, Math.floor((160 - textW(s)) / 2), 124, 3); }
     drawText('v0.1', 136, 134, 1);
   },
@@ -62,7 +62,7 @@ const INTRO = {
     const s = this.show;
     if (!s) return;
     if (s.startsWith('m_')) { ctx.drawImage(artCanvas(s), 60 + this.x, 30); return; }
-    ctx.drawImage(artCanvas(`c_${s}_down0`), 0, 0, 16, 16, 56 + this.x, 26, 48, 48);
+    ctx.drawImage(artCanvas(`tr_${s}`) || artCanvas(`c_${s}_down0`), 56 + this.x, 24);
   },
 };
 function sayIs(name) { return name + (jong(name) ? '이라고' : '라고'); }

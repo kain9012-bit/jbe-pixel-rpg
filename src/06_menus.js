@@ -228,7 +228,7 @@ async function cardMenu() {
   await panel(() => {
     fillScr(0);
     box(0, 0, 160, 76);
-    ctx.drawImage(artCanvas('c_player_down0'), 0, 0, 16, 16, 118, 14, 32, 32);
+    ctx.drawImage(artCanvas('tr_player'), 0, 0, 48, 52, 106, 4, 48, 52);
     drawText('교행몬 트레이너', 8, 6, 2);
     drawText('이름  ' + G.S.name, 8, 22);
     drawText('소지금  ' + G.S.money.toLocaleString() + '원', 8, 38);

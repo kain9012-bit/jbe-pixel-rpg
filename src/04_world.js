@@ -319,8 +319,8 @@ class Ent {
     if (this.dir === 'down' || this.dir === 'up') { name = `c_${this.ch}_${this.dir}${walking ? 1 : 0}`; flip = walking && this.par === 1; }
     else { name = `c_${this.ch}_side${walking ? 1 : 0}`; flip = this.dir === 'right'; }
     const img = artCanvas(name, flip);
-    if (img) ctx.drawImage(img, sx, sy);
-    if (this.bubble) { box(sx + 1, sy - 15, 14, 14); drawText('!', sx + 6, sy - 12); }
+    if (img) ctx.drawImage(img, sx, sy + 16 - img.height);
+    if (this.bubble) { box(sx + 1, sy - 23, 14, 14); drawText('!', sx + 6, sy - 20); }
   }
 }
 
@@ -425,7 +425,6 @@ const OW = {
     if (this.checkTrainers()) return;
     if (ch === 'g' && m.wild && chance(isOvertime() ? 1 / 7 : 1 / 10)) {
       const pick = pickWild(m.wild);
-      if (isOvertime()) pick[1]++;
       if (G.S.repel > 0 && pick[1] < leadLevel()) return;
       run(() => wildBattle(pick[0], pick[1]));
     }

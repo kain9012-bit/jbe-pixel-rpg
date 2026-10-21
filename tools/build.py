@@ -19,6 +19,12 @@ for k, rows in TILES.items():
     add('t_' + k, rows)
 for k, rows in M.items():
     add(k, rows)
+from art_hd import HD
+for k, rows in HD.items():
+    add(k, rows)
+# 참고 그림에서 뽑은 인물 도트 (다시 만들려면: tools/ref/에 원본 넣고 python tools/art_ref.py --json)
+for k, rows in json.load(open(TOOLS / 'ref_sprites.json', encoding='utf-8')).items():
+    add(k, rows)
 
 code = ''
 for f in sorted(glob.glob(str(ROOT / 'src' / '*.js'))):

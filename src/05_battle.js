@@ -32,8 +32,9 @@ class Battle {
     const blink = b => b > 0 && (b >> 2) % 2 === 0;
     // 상대
     if (this.eTrainer) {
-      const c = artCanvas(`c_${this.tr.ch}_down0`);
-      ctx.drawImage(c, 0, 0, 16, 16, this.eX + 4, 4, 32, 32);
+      const big = artCanvas(`tr_${this.tr.ch}`);
+      if (big) ctx.drawImage(big, this.eX - 4, 0);
+      else { const c = artCanvas(`c_${this.tr.ch}_down0`); ctx.drawImage(c, 0, 0, 16, 16, this.eX + 4, 4, 32, 32); }
     } else if (!this.eHide && !blink(this.eBlink)) {
       const img = artCanvas(SP[this.E.sp].art);
       const h = Math.max(0, 40 - this.eDy);
@@ -41,8 +42,7 @@ class Battle {
     }
     // 내 쪽
     if (this.pTrainer) {
-      const c = artCanvas('c_player_up0');
-      ctx.drawImage(c, 0, 0, 16, 16, this.pX + 4, 52, 32, 32);
+      ctx.drawImage(artCanvas('c_player_back'), this.pX - 4, 40);
     } else if (!this.pHide && !blink(this.pBlink)) {
       const img = artCanvas(SP[this.M.sp].art, true);
       const h = Math.max(0, 40 - this.pDy);
