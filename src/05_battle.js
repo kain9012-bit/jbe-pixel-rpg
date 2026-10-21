@@ -469,8 +469,8 @@ class Battle {
   async giveExp() {
     const alive = [...this.part].filter(i => G.S.party[i] && G.S.party[i].hp > 0);
     if (!alive.length) return;
-    // 같은 호봉 상대와 2~3번 겨루면 1호봉 오르도록 (다음 호봉까지 10×호봉 필요)
-    const base = Math.max(1, Math.floor(SP[this.E.sp].exp / 55 * this.E.lv * 4));
+    // 같은 호봉 상대와 1~2번 겨루면 1호봉 오르도록 (다음 호봉까지 10×호봉 필요)
+    const base = Math.max(1, Math.floor(SP[this.E.sp].exp / 55 * this.E.lv * 6));
     const each0 = Math.max(1, Math.floor(base / alive.length));
     const mentor = G.S.party.some(p => (p.grade || 0) >= 3);
     for (const i of alive) {
