@@ -43,11 +43,13 @@ async function afterRest() {
     nextMorning();
     playMusic(curMap().music);
     await say(`다음 날 아침이 밝았다! 오늘은 ${seasonText()}`);
+    await morningTool();
     await checkEvolutions(); await questCheck();
   } else if (isOvertime()) {
     await say('야근 끝에 겨우 퇴근했다… 내일은 꼭 칼퇴하자!');
     nextMorning();
     await say(`다음 날 아침! 오늘은 ${seasonText()}`);
+    await morningTool();
   }
 }
 
@@ -136,10 +138,30 @@ async function innovTalk() {
   if (!F().dex) { await say('업무경감 도구를 나눠 드리는 업무혁신 담당이에요. 업무도감을 받고 다시 오세요!'); return; }
   if (!F().tool1) {
     await says('반가워요! 저는 교직원들이 만든 업무경감 도구를 소개하는 일을 해요.', '도구를 교행몬에게 쓰면 새 기술을 익혀요. 몇 번을 써도 닳지 않죠!');
+    F().toolDay = dayIdx();
     await getItem('JBEdu FORM', 1);
     F().tool1 = 1;
     await says('한글 문서 서식을 버튼 하나로 맞춰 주는 도구예요. 「서식 일괄 적용」을 가르칠 수 있어요.', '다른 도구는 서류숲과 완주 어딘가에 있대요. 찾아보세요!');
     return;
   }
-  await say('도구는 가방에서 꺼내 교행몬에게 쓰면 돼요. 몇 번이든 쓸 수 있어요!');
+  const next = DAILY_TOOLS.find(t => !G.S.bag[t]);
+  if (next && F().toolDay !== dayIdx()) {
+    F().toolDay = dayIdx();
+    await say('오늘 데이터 도구실에 올라온 도구를 소개할게요!');
+    await getItem(next, 1);
+    await say(ITEMS[next].d);
+    await say('도구는 날마다 하나씩 나눠 드려요. 내일 또 오세요!');
+    return;
+  }
+  if (next) { await says('오늘 도구는 이미 드렸어요.', '퇴근하고 내일 출근하면 새 도구가 와 있을 거예요!'); return; }
+  await says('제가 가진 도구는 다 드렸어요!', '쉼터의 「데이터 도구실」 단말에 가면 교직원들이 만든 도구가 더 많이 올라와 있어요.');
+}
+const DAILY_TOOLS = ['결재함 모아보기', '법령 바로보기', '나이스 복무 달력', '문서정리 도우미', 'HWPX 일괄 변환'];
+// 도구 선물 (한 번만)
+async function toolGift(id, line) {
+  if (G.S.bag[id] || F()['gift_' + id]) return;
+  F()['gift_' + id] = 1;
+  await say(line);
+  await getItem(id, 1);
+  await say('가방에서 꺼내 교행몬에게 쓰면 새 기술을 익힌다. 닳지 않는다!');
 }

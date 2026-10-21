@@ -456,7 +456,9 @@ const OW = {
     if (t.ch === 'D' && m.warps[key] && m.warps[key].locked) { run(() => say(m.warps[key].locked)); return; }
     if (t.ch === 'G' && !gateOpen(m, tx, ty)) { run(() => gateTry(m, tx, ty)); return; }
     if (m.signs[key]) { const s = m.signs[key]; run(async () => { if (typeof s === 'function') await s(); else await say(s); }); return; }
-    const txt = { H: '업무 관련 책이 빽빽하게 꽂혀 있다.', P: '인력풀 단말이다. 아직 준비 중인 것 같다.', V: '텔레비전에서 교행몬 뉴스가 나오고 있다.', E: '푹신해 보이는 침대다.', Q: '교행몬 모양의 동상이다.', Z: '2층으로 가는 계단이다. 지금은 올라갈 일이 없다.' }[t.ch];
+    const txt = { H: '업무 관련 책이 빽빽하게 꽂혀 있다.', E: '푹신해 보이는 침대다.', Q: '교행몬 모양의 동상이다.', Z: '2층으로 가는 계단이다. 지금은 올라갈 일이 없다.' }[t.ch];
+    if (t.ch === 'P') { run(roomTerminal); return; }
+    if (t.ch === 'V') { run(roomTV); return; }
     if (txt) run(() => say(txt));
   },
   draw() {
