@@ -512,12 +512,12 @@ defMap('wgym', {
   signs: Object.fromEntries(['1,2', '8,2', '1,9', '8,9'].map(k => [k, () => say(`완주교육지원청 관장 한결\n도전에 성공한 트레이너: ${G.S.badges[0] ? G.S.name : '아직 없음'}`)])),
   npcs: [
     { id: 'leader', x: 4, y: 1, ch: 'leader', trainer: {
-      id: 'g1', name: '관장 한결', ch: 'leader', team: [['기안이', 12], ['칸반이', 14]], money: 99, sight: 0,
+      id: 'g1', name: '관장 한결', ch: 'leader', team: [['기안이', 9], ['칸반이', 10]], money: 99, sight: 0,
       before: ['나는 완주교육지원청 관장 한결.', '모든 일은 계획에서 시작되지. 계획 없는 열정은 야근으로 끝나거든.', '네 계획을 보여 줘!'],
       defeat: '…좋은 계획이었어. 인정할게.',
       onWin: gymWin,
     }, talk: async () => { await says('배지는 너의 계획이 통했다는 증거야.', '다음 관문은 진안교육지원청이야. 계획대로만 가면 문제없을 거야.'); } },
-    { x: 1, y: 5, ch: 'aide', dir: 'right', trainer: { id: 'g1t', name: '주무관 트레이너 지훈', ch: 'aide', team: [['칸반이', 10], ['기안이', 11]], money: 20, sight: 4,
+    { x: 1, y: 5, ch: 'aide', dir: 'right', trainer: { id: 'g1t', name: '주무관 트레이너 지훈', ch: 'aide', team: [['칸반이', 8], ['기안이', 8]], money: 20, sight: 4,
       before: '관장님께 가려면 나를 넘어야지! 계획은 세워 왔어?', defeat: '내 계획에 빈틈이 있었네…' }, talk: '기획형은 회계형에 약해. 관장님 칸반이도 마찬가지야.' },
     { x: 7, y: 10, ch: 'man2', dir: 'left', talk: async () => {
       if (G.S.badges[0]) { await say('오! 새싹 배지! 미래의 교행몬 마스터 납시었네!'); return; }
